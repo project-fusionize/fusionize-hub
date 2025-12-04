@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import {
   Activity,
   DollarSign,
@@ -25,137 +26,64 @@ import {
   Store,
   TrendingUp,
   Users,
+  Workflow,
+  Bot,
+  Brain,
+  Wrench,
+  MessageSquare,
+  Database,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import type { Route } from "./nav-main";
 import DashboardNavigation from "@/components/nav-main";
-import { NotificationsPopover } from "@/components/nav-notifications";
 import { TeamSwitcher } from "@/components/team-switcher";
 import { ThemeModeToggle } from "./ui/theme-mode-toggle";
-
-const sampleNotifications = [
-  {
-    id: "1",
-    avatar: "/avatars/01.png",
-    fallback: "OM",
-    text: "New order received.",
-    time: "10m ago",
-  },
-  {
-    id: "2",
-    avatar: "/avatars/02.png",
-    fallback: "JL",
-    text: "Server upgrade completed.",
-    time: "1h ago",
-  },
-  {
-    id: "3",
-    avatar: "/avatars/03.png",
-    fallback: "HH",
-    text: "New user signed up.",
-    time: "2h ago",
-  },
-];
 
 const dashboardRoutes: Route[] = [
   {
     id: "home",
     title: "Home",
     icon: <Home className="size-4" />,
-    link: "#",
+    link: "/",
   },
   {
-    id: "products",
-    title: "Products",
-    icon: <Package2 className="size-4" />,
+    id: "health",
+    title: "Health",
+    icon: <Activity className="size-4" />,
+    link: "/health",
+  },
+  {
+    id: "workflows",
+    title: "Workflows",
+    icon: <Workflow className="size-4" />,
+    link: "/workflows",
+  },
+  {
+    id: "agents",
+    title: "Agents",
+    icon: <Bot className="size-4" />,
     link: "#",
     subs: [
       {
-        title: "Catalogue",
-        link: "#",
-        icon: <Package2 className="size-4" />,
+        title: "Models",
+        link: "/agents/models",
+        icon: <Brain className="size-4" />,
       },
       {
-        title: "Checkout Links",
-        link: "#",
-        icon: <LinkIcon className="size-4" />,
+        title: "Tools",
+        link: "/agents/tools",
+        icon: <Wrench className="size-4" />,
       },
       {
-        title: "Discounts",
-        link: "#",
-        icon: <Percent className="size-4" />,
-      },
-    ],
-  },
-  {
-    id: "usage-billing",
-    title: "Usage Billing",
-    icon: <PieChart className="size-4" />,
-    link: "#",
-    subs: [
-      {
-        title: "Meters",
-        link: "#",
-        icon: <PieChart className="size-4" />,
+        title: "Prompts",
+        link: "/agents/prompts",
+        icon: <MessageSquare className="size-4" />,
       },
       {
-        title: "Events",
-        link: "#",
-        icon: <Activity className="size-4" />,
+        title: "Storages",
+        link: "/agents/storages",
+        icon: <Database className="size-4" />,
       },
-    ],
-  },
-  {
-    id: "benefits",
-    title: "Benefits",
-    icon: <Sparkles className="size-4" />,
-    link: "#",
-  },
-  {
-    id: "customers",
-    title: "Customers",
-    icon: <Users className="size-4" />,
-    link: "#",
-  },
-  {
-    id: "sales",
-    title: "Sales",
-    icon: <ShoppingBag className="size-4" />,
-    link: "#",
-    subs: [
-      {
-        title: "Orders",
-        link: "#",
-        icon: <ShoppingBag className="size-4" />,
-      },
-      {
-        title: "Subscriptions",
-        link: "#",
-        icon: <Infinity className="size-4" />,
-      },
-    ],
-  },
-  {
-    id: "storefront",
-    title: "Storefront",
-    icon: <Store className="size-4" />,
-    link: "#",
-  },
-  {
-    id: "analytics",
-    title: "Analytics",
-    icon: <TrendingUp className="size-4" />,
-    link: "#",
-  },
-  {
-    id: "finance",
-    title: "Finance",
-    icon: <DollarSign className="size-4" />,
-    link: "#",
-    subs: [
-      { title: "Incoming", link: "#" },
-      { title: "Outgoing", link: "#" },
-      { title: "Payout Account", link: "#" },
     ],
   },
   {
@@ -191,14 +119,16 @@ export function DashboardSidebar() {
             : "flex-row items-center justify-between"
         )}
       >
-        <a href="#" className="flex items-center gap-2">
-          <Logo className="h-8 w-8" />
+        <Link to="/" className="flex items-center gap-2">
+          <div className="size-6 ml-2 flex items-center justify-center">
+            <Logo />
+          </div>
           {!isCollapsed && (
-            <span className="font-semibold text-black dark:text-white">
-              Acme
+            <span className="font-semibold text-lg text-black dark:text-white">
+              hUB
             </span>
           )}
-        </a>
+        </Link>
 
         <motion.div
           key={isCollapsed ? "header-collapsed" : "header-expanded"}
@@ -210,7 +140,7 @@ export function DashboardSidebar() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
         >
-                          <ThemeModeToggle />
+          <ThemeModeToggle />
 
           {/* <NotificationsPopover notifications={sampleNotifications} /> */}
           <SidebarTrigger />
@@ -220,7 +150,7 @@ export function DashboardSidebar() {
         <DashboardNavigation routes={dashboardRoutes} />
       </SidebarContent>
       <SidebarFooter className="px-2">
-        
+
         <TeamSwitcher teams={teams} />
       </SidebarFooter>
     </Sidebar>

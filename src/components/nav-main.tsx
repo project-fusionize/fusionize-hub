@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import type React from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 
 export type Route = {
@@ -35,6 +35,7 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [openCollapsible, setOpenCollapsible] = useState<string | null>(null);
+  const { pathname } = useLocation();
 
   return (
     <SidebarMenu>
@@ -56,9 +57,9 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
                   <SidebarMenuButton
                     className={cn(
                       "flex w-full items-center rounded-lg px-2 transition-colors",
-                      isOpen
-                        ? "bg-sidebar-muted text-foreground"
-                        : "text-muted-foreground hover:bg-sidebar-muted hover:text-foreground",
+                      isOpen || pathname === route.link
+                        ? "bg-sidebar-accent/10 text-sidebar-accent-foreground font-medium"
+                        : "text-muted-foreground hover:bg-sidebar-accent/10 hover:text-foreground",
                       isCollapsed && "justify-center"
                     )}
                   >
@@ -89,12 +90,17 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
                           className="h-auto"
                         >
                           <SidebarMenuSubButton asChild>
-                            <a
-                              href={subRoute.link}
-                              className="flex items-center rounded-md px-4 py-1.5 text-sm font-medium text-muted-foreground hover:bg-sidebar-muted hover:text-foreground"
+                            <Link
+                              to={subRoute.link}
+                              className={cn(
+                                "flex items-center rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+                                pathname === subRoute.link
+                                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                  : "text-muted-foreground hover:bg-sidebar-accent/10 hover:text-foreground"
+                              )}
                             >
                               {subRoute.title}
-                            </a>
+                            </Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ))}
@@ -104,10 +110,13 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
               </Collapsible>
             ) : (
               <SidebarMenuButton tooltip={route.title} asChild>
-                <a
-                  href={route.link}
+                <Link
+                  to={route.link}
                   className={cn(
-                    "flex items-center rounded-lg px-2 transition-colors text-muted-foreground hover:bg-sidebar-muted hover:text-foreground",
+                    "flex items-center rounded-lg px-2 transition-colors",
+                    pathname === route.link
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      : "text-muted-foreground hover:bg-sidebar-accent/10 hover:text-foreground",
                     isCollapsed && "justify-center"
                   )}
                 >
@@ -117,7 +126,7 @@ export default function DashboardNavigation({ routes }: { routes: Route[] }) {
                       {route.title}
                     </span>
                   )}
-                </a>
+                </Link>
               </SidebarMenuButton>
             )}
           </SidebarMenuItem>
