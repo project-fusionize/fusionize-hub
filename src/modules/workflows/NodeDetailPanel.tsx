@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import { Bot, Database, Zap, GitBranch, Clock, CheckCircle, Search } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface NodeDetailPanelProps {
   node: {
@@ -12,7 +16,6 @@ interface NodeDetailPanelProps {
 }
 
 export function NodeDetailPanel({ node }: NodeDetailPanelProps) {
-  const [activeTab, setActiveTab] = useState<'input' | 'output' | 'metadata'>('output');
   const [logSearch, setLogSearch] = useState('');
 
   if (!node) {
@@ -32,11 +35,11 @@ export function NodeDetailPanel({ node }: NodeDetailPanelProps) {
   }
 
   const typeIcons = {
-    ai: { icon: Bot, label: 'AI Agent', color: 'text-purple-600 bg-purple-500/10' },
-    tool: { icon: Zap, label: 'Custom Tool', color: 'text-blue-600 bg-blue-500/10' },
-    api: { icon: Database, label: 'API Call', color: 'text-green-600 bg-green-500/10' },
-    decision: { icon: GitBranch, label: 'Decision Gateway', color: 'text-orange-600 bg-orange-500/10' },
-    start: { icon: CheckCircle, label: 'Start', color: 'text-muted-foreground bg-muted' },
+    ai: { icon: Bot, label: 'AI Agent', variant: 'default' as const },
+    tool: { icon: Zap, label: 'Custom Tool', variant: 'secondary' as const },
+    api: { icon: Database, label: 'API Call', variant: 'outline' as const },
+    decision: { icon: GitBranch, label: 'Decision Gateway', variant: 'destructive' as const },
+    start: { icon: CheckCircle, label: 'Start', variant: 'outline' as const },
   };
 
   const typeConfig = typeIcons[node.type as keyof typeof typeIcons] || typeIcons.tool;
@@ -86,10 +89,10 @@ export function NodeDetailPanel({ node }: NodeDetailPanelProps) {
     <div className="flex flex-col h-full">
       {/* Node Summary */}
       <div className="p-6 border-b border-border">
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg ${typeConfig.color} mb-4`}>
-          <TypeIcon className="w-4 h-4" />
-          <span className="text-sm">{typeConfig.label}</span>
-        </div>
+        <Badge variant={typeConfig.variant} className="mb-4 gap-1">
+          <TypeIcon className="w-3 h-3" />
+          {typeConfig.label}
+        </Badge>
 
         <h2 className="text-xl mb-2">{node.label}</h2>
         {node.description && (
@@ -114,60 +117,52 @@ export function NodeDetailPanel({ node }: NodeDetailPanelProps) {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-border">
-        <div className="flex">
-          {(['input', 'output', 'metadata'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-6 py-3 capitalize transition-colors ${activeTab === tab
-                  ? 'border-b-2 border-primary text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
-                }`}
-            >
-              {tab}
-            </button>
-          ))}
+      <Tabs defaultValue="output" className="flex-1 flex flex-col overflow-hidden">
+        <div className="px-6 pt-4 border-b border-border">
+          <TabsList className="w-full justify-start">
+            <TabsTrigger value="input" className="flex-1">Input</TabsTrigger>
+            <TabsTrigger value="output" className="flex-1">Output</TabsTrigger>
+            <TabsTrigger value="metadata" className="flex-1">Metadata</TabsTrigger>
+          </TabsList>
         </div>
-      </div>
 
-      {/* Tab Content */}
-      <div className="flex-1 overflow-auto p-6">
-        {activeTab === 'input' && (
-          <pre className="bg-muted p-4 rounded-lg text-sm overflow-auto">
-            {JSON.stringify(mockInput, null, 2)}
-          </pre>
-        )}
-        {activeTab === 'output' && (
-          <pre className="bg-muted p-4 rounded-lg text-sm overflow-auto">
-            {JSON.stringify(mockOutput, null, 2)}
-          </pre>
-        )}
-        {activeTab === 'metadata' && (
-          <div className="space-y-4">
-            {Object.entries(mockMetadata).map(([key, value]) => (
-              <div key={key}>
-                <div className="text-sm text-muted-foreground mb-1 capitalize">{key}</div>
-                <div className="bg-muted p-3 rounded-lg">
-                  <pre className="text-sm">{typeof value === 'object' ? JSON.stringify(value, null, 2) : value}</pre>
+        <div className="flex-1 overflow-auto p-6">
+          <TabsContent value="input" className="mt-0 h-full">
+            <pre className="bg-muted p-4 rounded-lg text-sm overflow-auto h-full">
+              {JSON.stringify(mockInput, null, 2)}
+            </pre>
+          </TabsContent>
+          <TabsContent value="output" className="mt-0 h-full">
+            <pre className="bg-muted p-4 rounded-lg text-sm overflow-auto h-full">
+              {JSON.stringify(mockOutput, null, 2)}
+            </pre>
+          </TabsContent>
+          <TabsContent value="metadata" className="mt-0 h-full">
+            <div className="space-y-4">
+              {Object.entries(mockMetadata).map(([key, value]) => (
+                <div key={key}>
+                  <div className="text-sm text-muted-foreground mb-1 capitalize">{key}</div>
+                  <div className="bg-muted p-3 rounded-lg">
+                    <pre className="text-sm">{typeof value === 'object' ? JSON.stringify(value, null, 2) : value}</pre>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          </TabsContent>
+        </div>
+      </Tabs>
 
       {/* Log Stream */}
       <div className="border-t border-border bg-card text-card-foreground">
         <div className="p-4 border-b border-border">
           <div className="flex items-center gap-3">
             <Search className="w-4 h-4 text-muted-foreground" />
-            <input
+            <Input
               type="text"
               placeholder="Search logs..."
               value={logSearch}
               onChange={(e) => setLogSearch(e.target.value)}
-              className="flex-1 bg-muted border border-border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="h-8"
             />
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { Plus, Upload } from 'lucide-react';
 import { WorkflowCard } from './WorkflowCard';
+import { Button } from '@/components/ui/button';
 
 interface Workflow {
   id: string;
@@ -77,14 +78,14 @@ export function WorkflowsList({ onWorkflowSelect }: WorkflowsListProps) {
           </p>
         </div>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors">
+          <Button variant="outline" className="gap-2">
             <Upload className="w-4 h-4" />
             Import
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+          </Button>
+          <Button className="gap-2">
             <Plus className="w-4 h-4" />
             Run Workflow
-          </button>
+          </Button>
         </div>
       </div>
 

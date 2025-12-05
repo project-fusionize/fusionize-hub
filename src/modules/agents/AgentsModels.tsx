@@ -1,8 +1,24 @@
 
 import { useState } from 'react';
-import { Plus, Edit2, Trash2, CheckCircle, XCircle, Power } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckCircle, XCircle, Power, Server } from 'lucide-react';
 import { AddModelModal } from './AddModelModal';
 import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface Model {
   id: string;
@@ -79,18 +95,17 @@ export function AgentsModels() {
   const [showAddModal, setShowAddModal] = useState(false);
 
 
-  const providerColors = {
-    OpenAI: 'bg-green-500/10 text-green-600 border-green-500/20',
-    Anthropic: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
-    Azure: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-    Google: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
-    Local: 'bg-muted text-muted-foreground border-border',
+  const providerLogos: Record<string, string> = {
+    'OpenAI': 'https://logo.clearbit.com/openai.com',
+    'Anthropic': 'https://logo.clearbit.com/anthropic.com',
+    'Azure': 'https://logo.clearbit.com/azure.microsoft.com',
+    'Google': 'https://logo.clearbit.com/google.com',
   };
 
   const modeColors = {
-    Chat: 'bg-blue-500/10 text-blue-600',
-    Vision: 'bg-purple-500/10 text-purple-600',
-    Embedding: 'bg-green-500/10 text-green-600',
+    Chat: 'bg-blue-500/10 text-blue-600 hover:bg-blue-500/20',
+    Vision: 'bg-purple-500/10 text-purple-600 hover:bg-purple-500/20',
+    Embedding: 'bg-green-500/10 text-green-600 hover:bg-green-500/20',
   };
 
   const handleToggleEnabled = (id: string) => {
@@ -104,124 +119,140 @@ export function AgentsModels() {
   };
 
   return (
-    <div className="p-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-8 space-y-8">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl mb-2">Models</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Models</h1>
           <p className="text-muted-foreground">
             Manage LLM model configurations and API connections
           </p>
         </div>
-        <Button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
+        <Button onClick={() => setShowAddModal(true)}>
+          <Plus className="w-4 h-4 mr-2" />
           Add Model
         </Button>
       </div>
 
-      {/* Models Table */}
-      <div className="bg-card border border-border rounded-2xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-muted/30 border-b border-border">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm text-muted-foreground">Name</th>
-                <th className="px-6 py-3 text-left text-sm text-muted-foreground">Provider</th>
-                <th className="px-6 py-3 text-left text-sm text-muted-foreground">Mode</th>
-                <th className="px-6 py-3 text-left text-sm text-muted-foreground">Status</th>
-                <th className="px-6 py-3 text-left text-sm text-muted-foreground">Config</th>
-                <th className="px-6 py-3 text-left text-sm text-muted-foreground">Last Used</th>
-                <th className="px-6 py-3 text-left text-sm text-muted-foreground">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
+      <Card>
+        <CardHeader>
+          <CardTitle>Configured Models</CardTitle>
+          <CardDescription>
+            A list of all configured language models and their status.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Provider</TableHead>
+                <TableHead>Mode</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Config</TableHead>
+                <TableHead>Last Used</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {models.map((model) => (
-                <tr key={model.id} className="hover:bg-muted/50 transition-colors">
-                  <td className="px-6 py-4">
+                <TableRow key={model.id}>
+                  <TableCell>
                     <div className="flex items-center gap-2">
-                      <span className={model.enabled ? '' : 'text-muted-foreground'}>{model.name}</span>
+                      <span className={model.enabled ? 'font-medium' : 'text-muted-foreground'}>
+                        {model.name}
+                      </span>
                       {!model.enabled && (
-                        <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">
+                        <Badge variant="secondary" className="text-xs">
                           Disabled
-                        </span>
+                        </Badge>
                       )}
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex px-3 py-1 rounded-lg text-sm border ${providerColors[model.provider]}`}>
-                      {model.provider}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {model.provider === 'Local' ? (
+                        <Server className="w-5 h-5 text-muted-foreground" />
+                      ) : (
+                        <img
+                          src={providerLogos[model.provider]}
+                          alt={model.provider}
+                          className="w-5 h-5 object-contain rounded-sm"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://logo.clearbit.com/openai.com';
+                            (e.target as HTMLImageElement).onerror = null;
+                          }}
+                        />
+                      )}
+                      <span>{model.provider}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
                     <div className="flex gap-1.5 flex-wrap">
                       {model.mode.map((mode) => (
-                        <span
+                        <Badge
                           key={mode}
-                          className={`px-2 py-1 rounded text-xs ${modeColors[mode]}`}
+                          variant="secondary"
+                          className={`${modeColors[mode]} border-0`}
                         >
                           {mode}
-                        </span>
+                        </Badge>
                       ))}
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     <div className="flex items-center gap-2">
                       {model.status === 'healthy' ? (
-                        <>
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                          <span className="text-sm text-green-600">Reachable</span>
-                        </>
+                        <div className="flex items-center gap-1.5 text-green-600">
+                          <CheckCircle className="w-4 h-4" />
+                          <span className="text-sm">Reachable</span>
+                        </div>
                       ) : (
-                        <>
-                          <XCircle className="w-4 h-4 text-red-600" />
-                          <span className="text-sm text-red-600">Unreachable</span>
-                        </>
+                        <div className="flex items-center gap-1.5 text-red-600">
+                          <XCircle className="w-4 h-4" />
+                          <span className="text-sm">Unreachable</span>
+                        </div>
                       )}
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     <div className="text-sm text-muted-foreground">
                       <div>Temp: {model.temperature}</div>
                       {model.maxTokens > 0 && <div>Max: {model.maxTokens}</div>}
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     <span className="text-sm text-muted-foreground">{model.lastUsed}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        className="p-2 hover:bg-muted rounded-lg transition-colors"
-                        title="Edit"
-                      >
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button variant="ghost" size="icon" title="Edit">
                         <Edit2 className="w-4 h-4 text-muted-foreground" />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleToggleEnabled(model.id)}
-                        className={`p-2 hover:bg-muted rounded-lg transition-colors ${model.enabled ? 'text-green-600' : 'text-muted-foreground'
-                          }`}
                         title={model.enabled ? 'Disable' : 'Enable'}
                       >
-                        <Power className="w-4 h-4" />
-                      </button>
-                      <button
+                        <Power className={`w-4 h-4 ${model.enabled ? 'text-green-600' : 'text-muted-foreground'}`} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleDelete(model.id)}
-                        className="p-2 hover:bg-red-500/10 rounded-lg transition-colors"
+                        className="hover:text-red-600 hover:bg-red-50"
                         title="Delete"
                       >
-                        <Trash2 className="w-4 h-4 text-red-600" />
-                      </button>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       {/* Add Model Modal */}
       {showAddModal && (

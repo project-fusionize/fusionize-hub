@@ -7,37 +7,20 @@ import {
   SidebarHeader,
   SidebarTrigger,
   useSidebar,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import {
-  Activity,
-  DollarSign,
-  Home,
-  Infinity,
-  LinkIcon,
-  Package2,
-  Percent,
-  PieChart,
-  Settings,
-  ShoppingBag,
-  Sparkles,
-  Store,
-  TrendingUp,
-  Users,
-  Workflow,
-  Bot,
-  Brain,
-  Wrench,
-  MessageSquare,
-  Database,
-} from "lucide-react";
+import { Activity, Bot, Brain, Database, Home, MessageSquare, Settings, Workflow, Wrench, LogOut } from "lucide-react";
 import { Logo } from "@/components/logo";
 import type { Route } from "./nav-main";
 import DashboardNavigation from "@/components/nav-main";
 import { TeamSwitcher } from "@/components/team-switcher";
 import { ThemeModeToggle } from "./ui/theme-mode-toggle";
+import { useAuth } from "@/auth/AuthContext";
 
 const dashboardRoutes: Route[] = [
   {
@@ -107,6 +90,7 @@ const teams = [
 
 export function DashboardSidebar() {
   const { state } = useSidebar();
+  const { logout } = useAuth();
   const isCollapsed = state === "collapsed";
 
   return (
@@ -149,9 +133,24 @@ export function DashboardSidebar() {
       <SidebarContent className="gap-4 px-2 py-4">
         <DashboardNavigation routes={dashboardRoutes} />
       </SidebarContent>
-      <SidebarFooter className="px-2">
-
+      <SidebarFooter className="px-2 gap-2">
         <TeamSwitcher teams={teams} />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              onClick={logout}
+              tooltip="Log out"
+              className={cn(
+                "flex w-full items-center gap-2 rounded-md p-2 text-sm font-medium hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                isCollapsed && "justify-center"
+              )}
+            >
+              <LogOut className="size-4" />
+              {!isCollapsed && <span>Log out</span>}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );

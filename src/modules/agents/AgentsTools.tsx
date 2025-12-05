@@ -1,5 +1,18 @@
+
 import { Search, Zap, Database, Globe, Code, FileText } from 'lucide-react';
 import { useState } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
 interface Tool {
   id: string;
@@ -117,47 +130,45 @@ export function AgentsTools() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-8 space-y-8">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl mb-2">Tools</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Tools</h1>
             <p className="text-muted-foreground">
               MCP tools and utilities available to workflows (read-only)
             </p>
           </div>
-          <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-500/10 px-4 py-2 rounded-lg">
-            <Zap className="w-4 h-4 text-blue-600" />
+          <Badge variant="outline" className="flex items-center gap-2 px-4 py-2 text-sm font-normal bg-blue-500/10 text-blue-600 border-blue-200">
+            <Zap className="w-4 h-4" />
             <span>{mockTools.length} tools registered</span>
-          </div>
+          </Badge>
         </div>
 
         {/* Search and Filter */}
         <div className="flex gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
               type="text"
               placeholder="Search tools..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+              className="pl-9"
             />
           </div>
 
           <div className="flex gap-2">
             {categories.map((category) => (
-              <button
+              <Button
                 key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-lg transition-colors ${selectedCategory === category
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-card border border-border text-muted-foreground hover:bg-muted'
-                  }`}
+                className="transition-colors"
               >
                 {category}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -169,54 +180,48 @@ export function AgentsTools() {
           const Icon = tool.icon;
 
           return (
-            <div
-              key={tool.id}
-              className="bg-card border border-border rounded-2xl p-6 hover:border-primary/50 transition-all"
-            >
-              {/* Header */}
-              <div className="flex items-start gap-4 mb-4">
-                <div className={`w-12 h-12 rounded-xl ${categoryColors[tool.category]} flex items-center justify-center`}>
+            <Card key={tool.id} className="hover:border-primary/50 transition-all">
+              <CardHeader className="flex flex-row items-start gap-4 pb-2">
+                <div className={`w-12 h-12 rounded-xl ${categoryColors[tool.category]} flex items-center justify-center shrink-0`}>
                   <Icon className="w-6 h-6" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="truncate">{tool.name}</h3>
-                    <span className={`px-2 py-1 rounded text-xs ${categoryColors[tool.category]}`}>
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-lg truncate">{tool.name}</CardTitle>
+                    <Badge variant="secondary" className={categoryColors[tool.category]}>
                       {tool.category}
-                    </span>
+                    </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">{tool.providedBy}</p>
+                  <CardDescription>{tool.providedBy}</CardDescription>
                 </div>
-              </div>
+              </CardHeader>
 
-              {/* Description */}
-              <p className="text-foreground mb-4">{tool.description}</p>
+              <CardContent className="pb-4">
+                <p className="text-sm text-foreground mb-4">{tool.description}</p>
 
-              {/* Capabilities */}
-              <div className="mb-4">
-                <div className="text-sm text-gray-600 mb-2">Capabilities</div>
-                <div className="flex flex-wrap gap-2">
-                  {tool.capabilities.map((capability, index) => (
-                    <span
-                      key={index}
-                      className="px-2 py-1 bg-muted text-muted-foreground rounded text-sm"
-                    >
-                      {capability}
-                    </span>
-                  ))}
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Capabilities</div>
+                  <div className="flex flex-wrap gap-2">
+                    {tool.capabilities.map((capability, index) => (
+                      <Badge key={index} variant="secondary">
+                        {capability}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </CardContent>
 
-              {/* Footer */}
-              <div className="pt-4 border-t border-border flex items-center justify-between">
+              <Separator />
+
+              <CardFooter className="pt-4 flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
-                  Used in <span className="text-blue-600">{tool.usedInWorkflows} workflows</span>
+                  Used in <span className="text-blue-600 font-medium">{tool.usedInWorkflows} workflows</span>
                 </span>
-                <button className="text-sm text-blue-600 hover:text-blue-700">
+                <Button variant="link" className="text-blue-600 h-auto p-0">
                   View Schema →
-                </button>
-              </div>
-            </div>
+                </Button>
+              </CardFooter>
+            </Card>
           );
         })}
       </div>
@@ -227,7 +232,7 @@ export function AgentsTools() {
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
             <Search className="w-8 h-8 text-muted-foreground" />
           </div>
-          <h3 className="text-lg mb-2">No tools found</h3>
+          <h3 className="text-lg font-medium mb-2">No tools found</h3>
           <p className="text-muted-foreground">Try adjusting your search or filter</p>
         </div>
       )}

@@ -34,8 +34,7 @@ export function CustomNode({ data }: { data: CustomNodeData }) {
     <div className={`relative ${data.selected ? 'ring-2 ring-blue-500 ring-offset-2 rounded-xl' : ''}`}>
       <Handle type="target" position={Position.Top} />
 
-      <div className="bg-card border-2 rounded-xl shadow-lg hover:shadow-xl transition-shadow min-w-[200px]"
-        style={{ borderColor: data.selected ? 'hsl(var(--primary))' : 'hsl(var(--border))' }}>
+      <div className={`bg-card rounded-xl shadow-lg hover:shadow-xl transition-shadow min-w-[200px] border-2 ${data.selected ? 'border-primary' : 'border-border/50'}`}>
         {/* Node Header */}
         <div className="flex items-center gap-3 p-3 border-b border-border">
           <div className={`w-8 h-8 ${nodeConfig.color} rounded-lg flex items-center justify-center`}>

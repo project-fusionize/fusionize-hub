@@ -1,5 +1,17 @@
+
 import { useState } from 'react';
 import { Search, ChevronDown, ChevronUp, FileText, Tag } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
 interface Prompt {
   id: string;
@@ -162,9 +174,9 @@ export function AgentsPrompts() {
   });
 
   const typeColors: Record<string, string> = {
-    System: 'bg-purple-500/10 text-purple-600',
-    Template: 'bg-blue-500/10 text-blue-600',
-    Instruction: 'bg-green-500/10 text-green-600',
+    System: 'bg-purple-500/10 text-purple-600 hover:bg-purple-500/20',
+    Template: 'bg-blue-500/10 text-blue-600 hover:bg-blue-500/20',
+    Instruction: 'bg-green-500/10 text-green-600 hover:bg-green-500/20',
   };
 
   const toggleExpanded = (id: string) => {
@@ -172,47 +184,45 @@ export function AgentsPrompts() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-8 space-y-8">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl mb-2">Prompts</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Prompts</h1>
             <p className="text-muted-foreground">
               Reusable prompt templates registered via MCP and plugins (read-only)
             </p>
           </div>
-          <div className="flex items-center gap-2 text-sm text-green-600 bg-green-500/10 px-4 py-2 rounded-lg">
-            <FileText className="w-4 h-4 text-green-600" />
+          <Badge variant="outline" className="flex items-center gap-2 px-4 py-2 text-sm font-normal bg-green-500/10 text-green-600 border-green-200">
+            <FileText className="w-4 h-4" />
             <span>{mockPrompts.length} prompts available</span>
-          </div>
+          </Badge>
         </div>
 
         {/* Search and Filter */}
         <div className="flex gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
               type="text"
               placeholder="Search prompts or tags..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+              className="pl-9"
             />
           </div>
 
           <div className="flex gap-2">
             {types.map((type) => (
-              <button
+              <Button
                 key={type}
+                variant={selectedType === type ? "default" : "outline"}
                 onClick={() => setSelectedType(type)}
-                className={`px-4 py-2 rounded-lg transition-colors ${selectedType === type
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-card border border-border text-muted-foreground hover:bg-muted'
-                  }`}
+                className="transition-colors"
               >
                 {type}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -224,87 +234,82 @@ export function AgentsPrompts() {
           const isExpanded = expandedId === prompt.id;
 
           return (
-            <div
-              key={prompt.id}
-              className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all"
-            >
-              {/* Header - Always Visible */}
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3>{prompt.name}</h3>
-                      <span className={`px-2 py-1 rounded text-sm ${typeColors[prompt.type]}`}>
+            <Card key={prompt.id} className="overflow-hidden transition-all hover:border-primary/50">
+              <CardHeader className="p-6 pb-4">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                      <CardTitle className="text-xl">{prompt.name}</CardTitle>
+                      <Badge variant="secondary" className={`${typeColors[prompt.type]} border-0`}>
                         {prompt.type}
-                      </span>
+                      </Badge>
                     </div>
-                    <p className="text-muted-foreground">{prompt.description}</p>
+                    <CardDescription className="text-base">
+                      {prompt.description}
+                    </CardDescription>
                   </div>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => toggleExpanded(prompt.id)}
-                    className="p-2 hover:bg-muted rounded-lg transition-colors ml-4"
                   >
                     {isExpanded ? (
                       <ChevronUp className="w-5 h-5 text-muted-foreground" />
                     ) : (
                       <ChevronDown className="w-5 h-5 text-muted-foreground" />
                     )}
-                  </button>
+                  </Button>
                 </div>
+              </CardHeader>
 
+              <CardContent className="p-6 pt-0 pb-4">
                 {/* Tags */}
-                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                <div className="flex items-center gap-2 mb-4 flex-wrap">
                   <Tag className="w-4 h-4 text-muted-foreground" />
                   {prompt.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2 py-1 bg-muted text-muted-foreground rounded text-sm"
-                    >
+                    <Badge key={tag} variant="secondary">
                       {tag}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
 
                 {/* Snippet - Always Visible */}
-                <div className="bg-muted/30 rounded-lg p-3 font-mono text-sm text-foreground">
+                <div className="bg-muted/50 rounded-lg p-3 font-mono text-sm text-foreground border border-border/50">
                   {prompt.snippet}...
                 </div>
 
-                {/* Footer */}
-                <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
-                  <span>Provided by: {prompt.providedBy}</span>
-                  <span>Used in <span className="text-blue-600">{prompt.usedInWorkflows} workflows</span></span>
-                </div>
-              </div>
-
-              {/* Expanded Content */}
-              {
-                isExpanded && (
-                  <div className="border-t border-border p-6 bg-muted/30">
-                    <div className="mb-2 text-sm text-muted-foreground">Full Prompt Body</div>
-                    <pre className="bg-card border border-border rounded-lg p-4 text-sm overflow-x-auto whitespace-pre-wrap text-foreground">
+                {/* Expanded Content */}
+                {isExpanded && (
+                  <div className="mt-6 space-y-2">
+                    <div className="text-sm font-medium text-muted-foreground">Full Prompt Body</div>
+                    <div className="bg-muted rounded-lg p-4 text-sm overflow-x-auto whitespace-pre-wrap font-mono border border-border">
                       {prompt.fullBody}
-                    </pre>
+                    </div>
                   </div>
-                )
-              }
-            </div>
+                )}
+              </CardContent>
+
+              <Separator />
+
+              <div className="p-4 flex items-center justify-between text-sm text-muted-foreground bg-muted/10">
+                <span>Provided by: <span className="font-medium text-foreground">{prompt.providedBy}</span></span>
+                <span>Used in <span className="text-blue-600 font-medium">{prompt.usedInWorkflows} workflows</span></span>
+              </div>
+            </Card>
           );
         })}
       </div>
 
       {/* Empty State */}
-      {
-        filteredPrompts.length === 0 && (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg mb-2">No prompts found</h3>
-            <p className="text-muted-foreground">Try adjusting your search or filter</p>
+      {filteredPrompts.length === 0 && (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+            <Search className="w-8 h-8 text-muted-foreground" />
           </div>
-        )
-      }
-    </div >
+          <h3 className="text-lg font-medium mb-2">No prompts found</h3>
+          <p className="text-muted-foreground">Try adjusting your search or filter</p>
+        </div>
+      )}
+    </div>
   );
 }

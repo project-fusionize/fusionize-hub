@@ -2,6 +2,15 @@ import { useState } from 'react';
 import { ChevronLeft, Play, Download, FileText } from 'lucide-react';
 import { WorkflowDiagram } from './WorkflowDiagram';
 import { NodeDetailPanel } from './NodeDetailPanel';
+import { Button } from '@/components/ui/button';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 interface WorkflowNode {
   id: string;
@@ -28,35 +37,46 @@ export function WorkflowDetail({ workflowId, onBack }: WorkflowDetailProps) {
       <div className="bg-background border-b border-border px-8 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onBack}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="gap-2 text-muted-foreground hover:text-foreground pl-0 hover:bg-transparent"
             >
               <ChevronLeft className="w-5 h-5" />
               Back
-            </button>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <span>Workflows</span>
-              <span>/</span>
-              <span className="text-foreground">{workflowName}</span>
-              <span>/</span>
-              <span className="text-primary">Run {runId}</span>
-            </div>
+            </Button>
+
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink onClick={onBack} className="cursor-pointer">Workflows</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{workflowName}</BreadcrumbPage>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="text-primary">Run {runId}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors">
+            <Button variant="outline" className="gap-2">
               <Download className="w-4 h-4" />
               Export Logs
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-muted transition-colors">
+            </Button>
+            <Button variant="outline" className="gap-2">
               <FileText className="w-4 h-4" />
               YAML
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+            </Button>
+            <Button className="gap-2">
               <Play className="w-4 h-4" />
               Re-run
-            </button>
+            </Button>
           </div>
         </div>
       </div>

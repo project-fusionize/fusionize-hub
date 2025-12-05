@@ -1,4 +1,14 @@
 import { CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 interface Worker {
   id: string;
@@ -20,74 +30,63 @@ const mockWorkers: Worker[] = [
 
 export function WorkerTable() {
   const statusConfig = {
-    healthy: { icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-500/10' },
-    degraded: { icon: AlertCircle, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
-    offline: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-500/10' },
+    healthy: { variant: 'default' as const, icon: CheckCircle },
+    degraded: { variant: 'secondary' as const, icon: AlertCircle },
+    offline: { variant: 'destructive' as const, icon: XCircle },
   };
 
   return (
-    <div className="bg-card border border-border rounded-2xl overflow-hidden">
-      <div className="p-6 border-b border-border">
-        <h2 className="text-lg font-semibold">Worker Nodes</h2>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-muted/50 border-b border-border">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Worker ID</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Load</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Running Tasks</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Last Heartbeat</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Version</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
+    <Card>
+      <CardHeader>
+        <CardTitle>Worker Nodes</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Worker ID</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Load</TableHead>
+              <TableHead>Running Tasks</TableHead>
+              <TableHead>Last Heartbeat</TableHead>
+              <TableHead>Version</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {mockWorkers.map((worker) => {
               const status = statusConfig[worker.status];
               const StatusIcon = status.icon;
 
               return (
-                <tr key={worker.id} className="hover:bg-muted/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <span className="font-mono text-sm font-medium">{worker.id}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${status.bg}`}>
-                      <StatusIcon className={`w-4 h-4 ${status.color}`} />
-                      <span className={`text-sm capitalize font-medium ${status.color}`}>
-                        {worker.status}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
+                <TableRow key={worker.id}>
+                  <TableCell className="font-mono font-medium">{worker.id}</TableCell>
+                  <TableCell>
+                    <Badge variant={status.variant} className="gap-1">
+                      <StatusIcon className="w-3 h-3" />
+                      {worker.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 bg-secondary rounded-full h-2 max-w-[100px]">
+                      <div className="flex-1 bg-secondary rounded-full h-2 w-[100px]">
                         <div
                           className={`h-2 rounded-full ${worker.load > 80 ? 'bg-red-500' : worker.load > 60 ? 'bg-yellow-500' : 'bg-green-500'
                             }`}
                           style={{ width: `${worker.load}%` }}
                         />
                       </div>
-                      <span className="text-sm text-muted-foreground min-w-[45px]">{worker.load}%</span>
+                      <span className="text-muted-foreground">{worker.load}%</span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-card-foreground">{worker.runningTasks}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-muted-foreground">{worker.lastHeartbeat}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-mono text-muted-foreground">{worker.version}</span>
-                  </td>
-                </tr>
+                  </TableCell>
+                  <TableCell>{worker.runningTasks}</TableCell>
+                  <TableCell className="text-muted-foreground">{worker.lastHeartbeat}</TableCell>
+                  <TableCell className="font-mono text-muted-foreground">{worker.version}</TableCell>
+                </TableRow>
               );
             })}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }

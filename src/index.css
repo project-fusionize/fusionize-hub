@@ -1,7 +1,7 @@
 @import 'bpmn-js/dist/assets/diagram-js.css';
 @import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css';
 @import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
-@import '@bpmn-io/properties-panel/dist/assets/properties-panel.css'; 
+@import '@bpmn-io/properties-panel/dist/assets/properties-panel.css';
 
 @import "@xyflow/react/dist/style.css";
 @import "tailwindcss";
@@ -83,9 +83,11 @@
     color: #213547;
     background-color: #ffffff;
   }
+
   a:hover {
     color: #747bff;
   }
+
   button {
     background-color: #f9f9f9;
   }
@@ -210,11 +212,12 @@
   --shadow-xl: 0px 4px 10px 0px hsl(0 0% 0% / 0.20), 0px 8px 10px -1px hsl(0 0% 0% / 0.20);
   --shadow-2xl: 0px 4px 10px 0px hsl(0 0% 0% / 0.50);
 
-   --bg-color: #121212; /* Google Material Dark Gray */
+  --bg-color: #121212;
+  /* Google Material Dark Gray */
   --text-color: #ffffff;
   --panel-bg: #2c2c2c;
   --panel-border: #555;
-  
+
   /* Override bpmn-js properties panel styles */
   .bio-properties-panel {
     background-color: var(--panel-bg);
@@ -222,10 +225,10 @@
   }
 
   /* Override the diagram canvas background */
-  .bjs-container > .djs-container > svg {
-    background-color: var(--bg-color) !important; 
+  .bjs-container>.djs-container>svg {
+    background-color: var(--bg-color) !important;
   }
-  
+
 }
 
 @layer base {

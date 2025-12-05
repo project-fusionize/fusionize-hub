@@ -1,4 +1,7 @@
 import { FileText, Database, Bot, Zap, CheckCircle, XCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 interface Tool {
   name: string;
@@ -19,45 +22,50 @@ const mockTools: Tool[] = [
 
 export function ToolsConnectors() {
   return (
-    <div className="bg-card border border-border rounded-2xl p-6">
-      <h2 className="text-lg font-semibold mb-4">Tools & Connectors</h2>
+    <Card>
+      <CardHeader>
+        <CardTitle>Tools & Connectors</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {mockTools.map((tool) => {
+            const Icon = tool.icon;
+            const isOperational = tool.status === 'operational';
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {mockTools.map((tool) => {
-          const Icon = tool.icon;
-          const isOperational = tool.status === 'operational';
-
-          return (
-            <div
-              key={tool.name}
-              className="border border-border rounded-xl p-4 hover:border-primary/50 transition-colors"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className={`w-10 h-10 rounded-lg ${isOperational ? 'bg-blue-500/10' : 'bg-red-500/10'
-                  } flex items-center justify-center`}>
-                  <Icon className={`w-5 h-5 ${isOperational ? 'text-blue-500' : 'text-red-500'
-                    }`} />
+            return (
+              <div
+                key={tool.name}
+                className="border border-border rounded-xl p-4 hover:border-primary/50 transition-colors"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className={`w-10 h-10 rounded-lg ${isOperational ? 'bg-blue-500/10' : 'bg-red-500/10'
+                    } flex items-center justify-center`}>
+                    <Icon className={`w-5 h-5 ${isOperational ? 'text-blue-500' : 'text-red-500'
+                      }`} />
+                  </div>
+                  {isOperational ? (
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                  ) : (
+                    <XCircle className="w-5 h-5 text-red-500" />
+                  )}
                 </div>
-                {isOperational ? (
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                ) : (
-                  <XCircle className="w-5 h-5 text-red-500" />
-                )}
-              </div>
 
-              <h3 className="mb-1 font-medium">{tool.name}</h3>
-              <p className="text-sm text-muted-foreground mb-3">{tool.type}</p>
+                <h3 className="mb-1 font-medium">{tool.name}</h3>
+                <Badge variant="outline" className="mb-3">
+                  {tool.type}
+                </Badge>
 
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Last check: {tool.lastCheck}</span>
-                <button className="text-blue-500 hover:text-blue-600 font-medium">
-                  Test
-                </button>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Last check: {tool.lastCheck}</span>
+                  <Button variant="ghost" size="sm" className="h-auto p-0 text-blue-500 hover:text-blue-600 font-medium hover:bg-transparent">
+                    Test
+                  </Button>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
