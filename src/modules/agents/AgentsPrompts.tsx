@@ -5,6 +5,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -235,7 +236,7 @@ export function AgentsPrompts() {
 
           return (
             <Card key={prompt.id} className="overflow-hidden transition-all hover:border-primary/50">
-              <CardHeader className="p-6 pb-4">
+              <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
@@ -291,10 +292,11 @@ export function AgentsPrompts() {
 
               <Separator />
 
-              <div className="p-4 flex items-center justify-between text-sm text-muted-foreground bg-muted/10">
+              <CardFooter>
                 <span>Provided by: <span className="font-medium text-foreground">{prompt.providedBy}</span></span>
+                <span className="mx-2">|</span>
                 <span>Used in <span className="text-blue-600 font-medium">{prompt.usedInWorkflows} workflows</span></span>
-              </div>
+              </CardFooter>
             </Card>
           );
         })}

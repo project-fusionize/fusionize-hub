@@ -118,7 +118,7 @@ export function NodeDetailPanel({ node }: NodeDetailPanelProps) {
 
       {/* Tabs */}
       <Tabs defaultValue="output" className="flex-1 flex flex-col overflow-hidden">
-        <div className="px-6 pt-4 border-b border-border">
+        <div className="px-6 pt-2 pb-2 border-b border-border">
           <TabsList className="w-full justify-start">
             <TabsTrigger value="input" className="flex-1">Input</TabsTrigger>
             <TabsTrigger value="output" className="flex-1">Output</TabsTrigger>
@@ -154,27 +154,28 @@ export function NodeDetailPanel({ node }: NodeDetailPanelProps) {
 
       {/* Log Stream */}
       <div className="border-t border-border bg-card text-card-foreground">
-        <div className="p-4 border-b border-border">
+        <div className="p-4 space-y-1 font-mono text-xs max-h-48 overflow-auto">
+          {mockLogs
+              .filter((log) => log.toLowerCase().includes(logSearch.toLowerCase()))
+              .map((log, index) => (
+                  <div key={index} className="text-muted-foreground">
+                    {log}
+                  </div>
+              ))}
+        </div>
+        <div className="p-4 border-t border-border">
           <div className="flex items-center gap-3">
-            <Search className="w-4 h-4 text-muted-foreground" />
+            <Search className="w-4 h-4 text-muted-foreground"/>
             <Input
-              type="text"
-              placeholder="Search logs..."
-              value={logSearch}
-              onChange={(e) => setLogSearch(e.target.value)}
-              className="h-8"
+                type="text"
+                placeholder="Search logs..."
+                value={logSearch}
+                onChange={(e) => setLogSearch(e.target.value)}
+                className="h-8"
             />
           </div>
         </div>
-        <div className="p-4 space-y-1 font-mono text-xs max-h-48 overflow-auto">
-          {mockLogs
-            .filter((log) => log.toLowerCase().includes(logSearch.toLowerCase()))
-            .map((log, index) => (
-              <div key={index} className="text-muted-foreground">
-                {log}
-              </div>
-            ))}
-        </div>
+
       </div>
     </div>
   );

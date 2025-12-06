@@ -25,6 +25,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tailwindcss/vite": "^4.1.17",
     "@xyflow/react": "^12.9.2",
+    "boring-avatars": "^2.0.4",
     "bpmn-js": "^18.8.0",
     "bpmn-js-properties-panel": "^5.42.3",
     "class-variance-authority": "^0.7.1",

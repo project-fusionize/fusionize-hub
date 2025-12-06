@@ -15,22 +15,16 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { ChevronsUpDown, Plus } from "lucide-react";
+import { Bolt, ChevronsUpDown, Plus } from "lucide-react";
 import * as React from "react";
 
-type Team = {
-  name: string;
-  logo: React.ElementType;
-  plan: string;
-};
-
-export function TeamSwitcher({ teams }: { teams: Team[] }) {
+export function ProjectSwitcher({ projects }: { projects: { name: string; logo: React.ElementType; description: string }[] }) {
   const { isMobile } = useSidebar();
-  const [activeTeam, setActiveTeam] = React.useState(teams[0]);
+  const [activeProject, setActiveProject] = React.useState(projects[0]);
 
-  if (!activeTeam) return null;
+  if (!activeProject) return null;
 
-  const Logo = activeTeam.logo;
+  const Logo = activeProject.logo;
 
   return (
     <SidebarMenu>
@@ -46,9 +40,9 @@ export function TeamSwitcher({ teams }: { teams: Team[] }) {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
-                  {activeTeam.name}
+                  {activeProject.name}
                 </span>
-                <span className="truncate text-xs">{activeTeam.plan}</span>
+                <span className="truncate text-xs">{activeProject.description}</span>
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -60,27 +54,27 @@ export function TeamSwitcher({ teams }: { teams: Team[] }) {
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Teams
+              Projects
             </DropdownMenuLabel>
-            {teams.map((team, index) => (
+            {projects.map((project, index) => (
               <DropdownMenuItem
-                key={team.name}
-                onClick={() => setActiveTeam(team)}
+                key={project.name}
+                onClick={() => setActiveProject(project)}
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
-                  <team.logo className="size-4 shrink-0" />
+                  <project.logo className="size-4 shrink-0" />
                 </div>
-                {team.name}
+                {project.name}
                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="gap-2 p-2">
-              <div className="flex size-6 items-center justify-center rounded-md border bg-background">
-                <Plus className="size-4" />
+              <div className="flex size-6 items-center justify-center">
+                <Bolt className="size-4" />
               </div>
-              <div className="font-medium text-muted-foreground">Add team</div>
+              <div className="font-medium text-muted-foreground">Manage Projects</div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

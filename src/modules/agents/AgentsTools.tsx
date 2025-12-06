@@ -196,7 +196,7 @@ export function AgentsTools() {
                 </div>
               </CardHeader>
 
-              <CardContent className="pb-4">
+              <CardContent>
                 <p className="text-sm text-foreground mb-4">{tool.description}</p>
 
                 <div className="space-y-2">
@@ -213,11 +213,11 @@ export function AgentsTools() {
 
               <Separator />
 
-              <CardFooter className="pt-4 flex items-center justify-between">
+              <CardFooter className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
                   Used in <span className="text-blue-600 font-medium">{tool.usedInWorkflows} workflows</span>
                 </span>
-                <Button variant="link" className="text-blue-600 h-auto p-0">
+                <Button variant="link" className="h-auto p-0">
                   View Schema →
                 </Button>
               </CardFooter>

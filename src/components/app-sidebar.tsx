@@ -16,9 +16,10 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Activity, Bot, Brain, Database, Home, MessageSquare, Settings, Workflow, Wrench, LogOut } from "lucide-react";
 import { Logo } from "@/components/logo";
+import Avatar from "boring-avatars";
 import type { Route } from "./nav-main";
 import DashboardNavigation from "@/components/nav-main";
-import { TeamSwitcher } from "@/components/team-switcher";
+import { ProjectSwitcher } from "@/components/project-switcher";
 import { ThemeModeToggle } from "./ui/theme-mode-toggle";
 import { useAuth } from "@/auth/AuthContext";
 
@@ -82,10 +83,43 @@ const dashboardRoutes: Route[] = [
   },
 ];
 
-const teams = [
-  { id: "1", name: "Alpha Inc.", logo: Logo, plan: "Free" },
-  { id: "2", name: "Beta Corp.", logo: Logo, plan: "Free" },
-  { id: "3", name: "Gamma Tech", logo: Logo, plan: "Free" },
+const projects = [
+  {
+    id: "1",
+    name: "Alpha Inc.",
+    logo: (props: any) => (
+      <Avatar
+        size={props.className?.includes("size-4") ? 16 : 32}
+        name="Alpha Inc."
+        variant="bauhaus"
+      />
+    ),
+    description: "Project Alpha for Alpha Inc.",
+  },
+  {
+    id: "2",
+    name: "Beta Corp.",
+    logo: (props: any) => (
+      <Avatar
+        size={props.className?.includes("size-4") ? 16 : 32}
+        name="Beta Corp."
+        variant="bauhaus"
+      />
+    ),
+    description: "Project Beta for Beta Corp.",
+  },
+  {
+    id: "3",
+    name: "Gamma Tech",
+    logo: (props: any) => (
+      <Avatar
+        size={props.className?.includes("size-4") ? 16 : 32}
+        name="Gamma Tech"
+        variant="bauhaus"
+      />
+    ),
+    description: "Project Gamma for Gamma Tech",
+  },
 ];
 
 export function DashboardSidebar() {
@@ -134,7 +168,7 @@ export function DashboardSidebar() {
         <DashboardNavigation routes={dashboardRoutes} />
       </SidebarContent>
       <SidebarFooter className="px-2 gap-2">
-        <TeamSwitcher teams={teams} />
+        <ProjectSwitcher projects={projects} />
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton

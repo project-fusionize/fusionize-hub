@@ -89,7 +89,7 @@ export function WorkflowDetail({ workflowId, onBack }: WorkflowDetailProps) {
         </div>
 
         {/* Right Panel: Node Details (35%) */}
-        <div className="flex-[35] bg-background border-l border-border overflow-auto">
+        <div className="flex-[35] bg-background border-l border-border">
           <NodeDetailPanel node={selectedNode} />
         </div>
       </div>
