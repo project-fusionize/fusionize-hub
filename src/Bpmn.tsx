@@ -5,6 +5,14 @@ import {
 } from 'bpmn-js-properties-panel';
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from './components/ui/button';
+import './Bpmn.css';
+import { Download, Save, RotateCcw } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Define the type for the BpmnModeler instance
 type BpmnModelerInstance = BpmnModeler | null;
@@ -61,7 +69,7 @@ const BpmnModelerComponent: React.FC = () => {
           if (warnings.length) {
             console.warn(warnings);
           }
-        //   bpmnModeler.get('canvas').zoom('fit-viewport');
+          //   bpmnModeler.get('canvas').zoom('fit-viewport');
         })
         .catch((err: Error) => {
           console.error('error importing XML', err);
@@ -87,26 +95,97 @@ const BpmnModelerComponent: React.FC = () => {
     }
   };
 
+  const handleSave = async () => {
+    if (modeler) {
+      try {
+        const { xml } = await modeler.saveXML({ format: true });
+        console.log('Saved XML:', xml);
+        alert('Diagram saved! (Check console for XML)');
+      } catch (err) {
+        console.error('Error saving XML', err);
+      }
+    }
+  };
+
+  const handleClear = async () => {
+    if (modeler) {
+      try {
+        await modeler.importXML(initialDiagram);
+      } catch (err) {
+        console.error('Error clearing diagram', err);
+      }
+    }
+  };
+
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100%' }}>
+    <div style={{ display: 'flex', height: 'calc(100vh - 16px)', width: '100%', position: 'relative' }}>
       {/* Canvas container for the diagram */}
       <div
         ref={canvasRef}
-        style={{ flex: 1, border: '1px solid #ccc' }}
+        style={{ flex: 1 }}
         id="js-canvas"
       />
       {/* Properties panel container */}
       <div
         ref={propertiesPanelRef}
-        style={{ width: '250px', overflowY: 'auto', border: '1px solid #ccc' }}
+        style={{ width: '250px', overflowY: 'auto', border: '1px solid #cccccc05' }}
         id="js-properties-panel"
       />
-      <Button
-        variant="ghost"
-        onClick={handleExportXML}
-      >
-        Export Diagram XML
-      </Button>
+
+      {/* Floating Toolbar */}
+      <div className="absolute bottom-6 left-6 flex items-center gap-2 p-2 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-xl transition-opacity duration-150 opacity-80 hover:opacity-100">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-xl hover:bg-white/20 text-foreground"
+                onClick={handleExportXML}
+              >
+                <Download className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Download XML</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-xl hover:bg-white/20 text-foreground"
+                onClick={handleSave}
+              >
+                <Save className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Save Diagram</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <div className="w-px h-6 bg-white/20 mx-1" />
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-xl hover:bg-white/20 hover:text-red-400 text-foreground"
+                onClick={handleClear}
+              >
+                <RotateCcw className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Clear Canvas</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
     </div>
   );
 };

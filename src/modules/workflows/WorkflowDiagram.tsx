@@ -244,7 +244,7 @@ export function WorkflowDiagram({ onNodeSelect, selectedNodeId }: WorkflowDiagra
         minZoom={0.5}
         maxZoom={1.5}
       >
-        <Background color="hsl(var(--border))" gap={16} />
+        <Background color="var(--border-color)" gap={16} />
         <Controls />
       </ReactFlow>
     </div>

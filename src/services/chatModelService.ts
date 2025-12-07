@@ -91,4 +91,17 @@ export const chatModelService = {
             throw new Error('Failed to delete model');
         }
     },
+
+    async testConnection(token: string, payload: any): Promise<boolean> {
+        const response = await fetch(`${API_BASE_URL}/test-connection`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+        });
+
+        return response.ok;
+    },
 };

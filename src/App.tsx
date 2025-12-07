@@ -1,16 +1,17 @@
 import './App.css'
 import Flow from './Flow'
 
-import {DashboardSidebar} from './components/app-sidebar'
-import {SidebarInset, SidebarProvider} from './components/ui/sidebar'
-import {BrowserRouter, Route, Routes, useNavigate, useParams} from 'react-router-dom'
-import {HealthStatus} from './modules/health/HealthStatus'
-import {WorkflowsList} from './modules/workflows/WorkflowsList'
-import {WorkflowDetail} from './modules/workflows/WorkflowDetail'
-import {AgentsModels} from './modules/agents/AgentsModels'
-import {AgentsTools} from './modules/agents/AgentsTools'
-import {AgentsPrompts} from './modules/agents/AgentsPrompts'
-import {AgentsStorages} from './modules/agents/AgentsStorages'
+import { DashboardSidebar } from './components/app-sidebar'
+import { SidebarInset, SidebarProvider } from './components/ui/sidebar'
+import { BrowserRouter, Route, Routes, useNavigate, useParams } from 'react-router-dom'
+import { HealthStatus } from './modules/health/HealthStatus'
+import { WorkflowsList } from './modules/workflows/WorkflowsList'
+import { WorkflowDetail } from './modules/workflows/WorkflowDetail'
+import { AgentsModels } from './modules/agents/AgentsModels'
+import { AgentsTools } from './modules/agents/AgentsTools'
+import { AgentsPrompts } from './modules/agents/AgentsPrompts'
+import { AgentsStorages } from './modules/agents/AgentsStorages'
+import BPM from './Bpmn'
 
 function WorkflowsRoute() {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ function App() {
           <DashboardSidebar />
           <SidebarInset className="flex flex-col" >
             <Routes>
-              <Route path="/" element={<Flow />} />
+              <Route path="/" element={<BPM />} />
               <Route path="/health" element={<HealthStatus />} />
               <Route path="/workflows" element={<WorkflowsRoute />} />
               <Route path="/workflows/:id" element={<WorkflowDetailRoute />} />

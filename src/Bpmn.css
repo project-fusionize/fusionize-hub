@@ -1,0 +1,274 @@
+/* BPMN Theme Variables */
+.djs-container {
+    --bpmn-stroke: var(--foreground);
+    --bpmn-fill: var(--background);
+    --bpmn-text: var(--foreground);
+    --bpmn-grid-dot: var(--border);
+}
+
+/* Canvas Background */
+.bjs-container {
+    background-color: var(--background) !important;
+    background-image: radial-gradient(var(--bpmn-grid-dot) 1px, transparent 1px) !important;
+    background-size: 20px 20px !important;
+}
+
+/* Elements (Shapes) */
+.djs-visual> :nth-child(1) {
+    stroke: var(--bpmn-stroke) !important;
+    fill: var(--bpmn-fill) !important;
+}
+
+/* Connections (Lines) */
+.djs-visual path {
+    stroke: var(--bpmn-stroke) !important;
+}
+
+/* Labels (Text) */
+.djs-visual text {
+    fill: var(--bpmn-text) !important;
+}
+
+.djs-label {
+    fill: var(--bpmn-text) !important;
+}
+
+/* Arrowheads (Markers) */
+.djs-visual marker path {
+    fill: var(--bpmn-stroke) !important;
+    stroke: var(--bpmn-stroke) !important;
+}
+
+/* Palette */
+.djs-palette {
+    background: var(--card) !important;
+    border-color: var(--border) !important;
+}
+
+.djs-palette .entry,
+.djs-palette .djs-palette-toggle {
+    color: var(--foreground) !important;
+}
+
+.djs-palette .entry:hover {
+    color: var(--primary) !important;
+}
+
+/* Context Pad */
+.djs-context-pad {
+    background: var(--card) !important;
+    border-color: var(--border) !important;
+}
+
+.djs-context-pad .entry {
+    background-color: var(--card) !important;
+    color: var(--foreground) !important;
+}
+
+.djs-context-pad .entry:hover {
+    background-color: var(--muted) !important;
+    color: var(--primary) !important;
+}
+
+/* Properties Panel */
+.bio-properties-panel,
+#js-properties-panel .bio-properties-panel {
+    /* Text Colors */
+    --text-base-color: var(--foreground);
+    --text-error-color: var(--destructive);
+    --link-color: var(--primary);
+    --description-color: var(--muted-foreground);
+    --description-code-background-color: var(--muted);
+    --description-code-border-color: var(--border);
+    --description-list-item-color: var(--muted-foreground);
+
+    /* Header */
+    --header-background-color: var(--card);
+    --header-icon-fill-color: var(--foreground);
+    --header-bottom-border-color: var(--border);
+
+    /* Groups */
+    --group-background-color: var(--card);
+    --group-bottom-border-color: var(--border);
+    --sticky-group-background-color: var(--card);
+    --sticky-group-bottom-border-color: var(--border);
+
+    /* Entries */
+    --add-entry-fill-color: var(--muted-foreground);
+    --add-entry-hover-fill-color: var(--primary-foreground);
+    --add-entry-hover-background-color: var(--primary);
+    --add-entry-label-color: var(--primary-foreground);
+    --remove-entry-fill-color: var(--destructive);
+    --remove-entry-hover-background-color: var(--destructive);
+
+    /* Arrows & Dots */
+    --arrow-fill-color: var(--muted-foreground);
+    --arrow-hover-background-color: var(--muted);
+    --dot-color: var(--muted-foreground);
+    --dot-color-error: var(--destructive);
+
+    /* Badges */
+    --list-badge-color: var(--primary-foreground);
+    --list-badge-background-color: var(--primary);
+
+    /* Inputs */
+    --placeholder-color: var(--muted-foreground);
+    --placeholder-background-color: var(--input);
+    --input-background-color: var(--input);
+    --input-border-color: var(--border);
+    --input-focus-background-color: var(--input);
+    --input-focus-border-color: var(--ring);
+    --focus-outline-color: var(--ring);
+    --input-error-background-color: var(--destructive);
+    --input-error-border-color: var(--destructive);
+    --input-error-focus-border-color: var(--destructive);
+    --input-disabled-color: var(--muted-foreground);
+    --input-disabled-background-color: var(--muted);
+    --input-disabled-border-color: var(--border);
+
+    /* Toggles */
+    --toggle-switch-on-background-color: var(--primary);
+    --toggle-switch-off-background-color: var(--input);
+    --toggle-switch-switcher-background-color: var(--primary-foreground);
+
+    /* List Entries */
+    --side-line-background-color: var(--border);
+    --side-line-extension-background-color: var(--border);
+    --list-entry-dot-background-color: var(--border);
+    --list-entry-header-button-fill-color: var(--muted-foreground);
+    --list-entry-add-entry-empty-background-color: var(--primary);
+    --list-entry-add-entry-empty-hover-background-color: var(--primary);
+    --list-entry-add-entry-label-color: var(--primary-foreground);
+    --list-entry-add-entry-background-color: var(--primary);
+    --list-entry-add-entry-fill-color: var(--primary-foreground);
+
+    /* Dropdowns */
+    --dropdown-item-background-color: var(--popover);
+    --dropdown-item-hover-background-color: var(--muted);
+    --dropdown-separator-background-color: var(--border);
+
+    /* Feel */
+    --feel-background-color: transparent;
+    --feel-active-color: var(--primary);
+    --feel-inactive-color: var(--muted-foreground);
+    --feel-hover-color: var(--foreground);
+    --feel-hover-background-color: var(--muted);
+    --feel-active-background-color: transparent;
+    --feel-required-color: var(--muted-foreground);
+    --feel-open-popup-color: var(--foreground);
+    --feel-open-popup-background-color: var(--popover);
+    --feel-open-popup-hover-color: var(--primary);
+    --feel-indicator-background-color: var(--border);
+    --feelers-select-color: var(--primary);
+
+    /* Typography */
+    --text-size-base: 14px;
+    --text-size-small: 13px;
+    --text-size-smallest: 12px;
+    --text-line-height: 21px;
+    --line-height-condensed: 17px;
+    --font-family: var(--font-sans);
+    --font-family-monospace: var(--font-mono);
+}
+
+/* Properties Panel Overrides (to ensure variables are applied) */
+.bio-properties-panel,
+#js-properties-panel .bio-properties-panel {
+    background: var(--group-background-color) !important;
+    border-left: 1px solid var(--group-bottom-border-color) !important;
+    color: var(--text-base-color) !important;
+}
+
+.bio-properties-panel-header,
+#js-properties-panel .bio-properties-panel-header,
+.bio-properties-panel .bio-properties-panel-header {
+    background: var(--header-background-color) !important;
+    color: var(--text-base-color) !important;
+    border-bottom: 1px solid var(--header-bottom-border-color) !important;
+}
+
+.bio-properties-panel-header .bio-properties-panel-header-labels,
+.bio-properties-panel-header .bio-properties-panel-header-actions {
+    color: var(--text-base-color) !important;
+}
+
+.bio-properties-panel-header svg {
+    fill: var(--header-icon-fill-color) !important;
+}
+
+.bio-properties-panel-header .bio-properties-panel-header-title {
+    color: var(--text-base-color) !important;
+}
+
+.bio-properties-panel-group-header,
+#js-properties-panel .bio-properties-panel-group-header {
+    color: var(--text-base-color) !important;
+}
+
+.bio-properties-panel-group-header .bio-properties-panel-group-header-title,
+#js-properties-panel .bio-properties-panel-group-header-title {
+    color: var(--text-base-color) !important;
+}
+
+.bio-properties-panel-entry-label,
+#js-properties-panel .bio-properties-panel-entry-label {
+    color: var(--text-base-color) !important;
+}
+
+.bio-properties-panel-entry-description,
+#js-properties-panel .bio-properties-panel-entry-description {
+    color: var(--description-color) !important;
+}
+
+.bio-properties-panel input,
+.bio-properties-panel select,
+.bio-properties-panel textarea,
+#js-properties-panel input,
+#js-properties-panel select,
+#js-properties-panel textarea {
+    background: var(--input-background-color) !important;
+    color: var(--text-base-color) !important;
+    border: 1px solid var(--input-border-color) !important;
+}
+
+.bio-properties-panel input:focus,
+.bio-properties-panel select:focus,
+.bio-properties-panel textarea:focus,
+#js-properties-panel input:focus,
+#js-properties-panel select:focus,
+#js-properties-panel textarea:focus {
+    border-color: var(--input-focus-border-color) !important;
+    outline: none !important;
+}
+
+/* Specific fix for group entries container */
+.bio-properties-panel-group-entries {
+    background: var(--group-background-color) !important;
+}
+
+/* Fix for list entries */
+.bio-properties-panel-list-entry-header {
+    background: var(--input-background-color) !important;
+    color: var(--text-base-color) !important;
+    border: 1px solid var(--input-border-color) !important;
+}
+
+.bio-properties-panel-list-entry-header-title {
+    color: var(--text-base-color) !important;
+}
+
+/* Fix for popup menus (e.g. replace menu) */
+.djs-popup {
+    background: var(--dropdown-item-background-color) !important;
+    border: 1px solid var(--dropdown-separator-background-color) !important;
+    color: var(--text-base-color) !important;
+}
+
+.djs-popup-header {
+    border-bottom: 1px solid var(--dropdown-separator-background-color) !important;
+}
+
+.djs-popup-body .entry:hover {
+    background-color: var(--dropdown-item-hover-background-color) !important;
+    color: var(--link-color) !important;
+}

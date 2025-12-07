@@ -1,6 +1,8 @@
 
 import { useState } from 'react';
 import { Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
+import { useAuth } from '../../auth/AuthContext';
+import { chatModelService } from '../../services/chatModelService';
 import {
   Dialog,
   DialogContent,
@@ -40,6 +42,9 @@ export function ModelConfigModal({ onClose, onSave, initialData }: ModelConfigMo
     hasEmbedding: initialData?.mode?.includes('Embedding') || false,
   });
 
+  const { token } = useAuth();
+
+
   const isEditing = !!initialData;
 
   const [showApiKey, setShowApiKey] = useState(false);
@@ -47,12 +52,28 @@ export function ModelConfigModal({ onClose, onSave, initialData }: ModelConfigMo
   const [validationStatus, setValidationStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const handleValidate = async () => {
+    if (!token) return;
+
     setValidating(true);
-    // Simulate API validation
-    setTimeout(() => {
+    setValidationStatus('idle');
+
+    try {
+      const payload = {
+        domain: formData.domain,
+        name: formData.name,
+        modelName: formData.modelName,
+        provider: formData.provider,
+        apiKey: formData.apiKey
+      };
+
+      const isSuccess = await chatModelService.testConnection(token, payload);
+      setValidationStatus(isSuccess ? 'success' : 'error');
+    } catch (error) {
+      console.error('Validation failed:', error);
+      setValidationStatus('error');
+    } finally {
       setValidating(false);
-      setValidationStatus('success');
-    }, 1500);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {

@@ -31,7 +31,7 @@ export function CustomNode({ data }: { data: CustomNodeData }) {
   const StatusIcon = statusInfo.icon;
 
   return (
-    <div className={`relative ${data.selected ? 'ring-2 ring-blue-500 ring-offset-2 rounded-xl' : ''}`}>
+    <div className={`relative ${data.selected ? 'ring-1 ring-ring ring-offset-1 ring-offset-background rounded-xl' : ''}`}>
       <Handle type="target" position={Position.Top} />
 
       <div className={`bg-card rounded-xl shadow-lg hover:shadow-xl transition-shadow min-w-[200px] border-2 ${data.selected ? 'border-primary' : 'border-border/50'}`}>
