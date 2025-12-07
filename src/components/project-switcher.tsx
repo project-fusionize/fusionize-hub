@@ -13,13 +13,12 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
-import { Bolt, ChevronsUpDown, Plus } from "lucide-react";
+import { Bolt, ChevronsUpDown } from "lucide-react";
 import * as React from "react";
 
 export function ProjectSwitcher({ projects }: { projects: { name: string; logo: React.ElementType; description: string }[] }) {
-  const { isMobile } = useSidebar();
+
   const [activeProject, setActiveProject] = React.useState(projects[0]);
 
   if (!activeProject) return null;
@@ -50,7 +49,7 @@ export function ProjectSwitcher({ projects }: { projects: { name: string; logo: 
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg mb-4"
             align="start"
-            side={isMobile ? "bottom" : "right"}
+            side="bottom"
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-xs text-muted-foreground">

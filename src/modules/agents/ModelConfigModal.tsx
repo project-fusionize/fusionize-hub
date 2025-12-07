@@ -21,22 +21,26 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
-interface AddModelModalProps {
+interface ModelConfigModalProps {
   onClose: () => void;
-  onAdd: (model: any) => void;
+  onSave: (model: any) => void;
+  initialData?: any;
 }
 
-export function AddModelModal({ onClose, onAdd }: AddModelModalProps) {
+export function ModelConfigModal({ onClose, onSave, initialData }: ModelConfigModalProps) {
   const [formData, setFormData] = useState({
-    name: '',
-    provider: 'OpenAI' as 'OpenAI' | 'Anthropic' | 'Azure' | 'Google' | 'Local',
-    apiKey: '',
-    temperature: 0.7,
-    maxTokens: 4096,
-    embeddingModel: '',
-    hasVision: false,
-    hasEmbedding: false,
+    domain: initialData?.domain || '',
+    name: initialData?.name || '',
+    provider: initialData?.provider || 'OpenAI',
+    modelName: initialData?.modelName || '',
+    apiKey: initialData?.apiKey || '',
+    temperature: initialData?.temperature || 0.7,
+    maxTokens: initialData?.maxTokens || 4096,
+    hasVision: initialData?.mode?.includes('Vision') || false,
+    hasEmbedding: initialData?.mode?.includes('Embedding') || false,
   });
+
+  const isEditing = !!initialData;
 
   const [showApiKey, setShowApiKey] = useState(false);
   const [validating, setValidating] = useState(false);
@@ -54,19 +58,21 @@ export function AddModelModal({ onClose, onAdd }: AddModelModalProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const modes: ('Chat' | 'Vision' | 'Embedding')[] = ['Chat'];
-    if (formData.hasVision) modes.push('Vision');
-    if (formData.hasEmbedding) modes.push('Embedding');
+    const capabilities: string[] = ['chat'];
+    if (formData.hasVision) capabilities.push('vision');
+    if (formData.hasEmbedding) capabilities.push('embedding');
 
-    onAdd({
+    onSave({
+      domain: formData.domain,
       name: formData.name,
       provider: formData.provider,
-      mode: modes,
-      status: 'healthy',
-      lastUsed: 'Never',
-      temperature: formData.temperature,
-      maxTokens: formData.maxTokens,
-      enabled: true,
+      modelName: formData.modelName,
+      apiKey: formData.apiKey,
+      capabilities: capabilities,
+      properties: {
+        temperature: formData.temperature,
+        maxTokens: formData.maxTokens,
+      },
     });
   };
 
@@ -74,21 +80,34 @@ export function AddModelModal({ onClose, onAdd }: AddModelModalProps) {
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Add New Model</DialogTitle>
+          <DialogTitle>{isEditing ? 'Edit Model' : 'Add New Model'}</DialogTitle>
           <DialogDescription>
-            Configure a new language model provider and its capabilities.
+            {isEditing ? 'Update the configuration for this language model.' : 'Configure a new language model provider and its capabilities.'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 py-4">
-          {/* Model Name */}
+          {/* Domain */}
           <div className="space-y-2">
-            <Label htmlFor="name">Model Name</Label>
+            <Label htmlFor="domain">Domain</Label>
+            <Input
+              id="domain"
+              value={formData.domain}
+              onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
+              placeholder="e.g., my.company.llm"
+              required
+              disabled={isEditing}
+            />
+          </div>
+
+          {/* Name */}
+          <div className="space-y-2">
+            <Label htmlFor="name">Display Name</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g., GPT-4o, Claude 3.5"
+              placeholder="e.g., My GPT-4o"
               required
             />
           </div>
@@ -111,6 +130,18 @@ export function AddModelModal({ onClose, onAdd }: AddModelModalProps) {
                 <SelectItem value="Local">Local (Ollama/LM Studio)</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Model Name (Provider Specific) */}
+          <div className="space-y-2">
+            <Label htmlFor="modelName">Model Name (Provider ID)</Label>
+            <Input
+              id="modelName"
+              value={formData.modelName}
+              onChange={(e) => setFormData({ ...formData, modelName: e.target.value })}
+              placeholder="e.g., gpt-4o, claude-3-5-sonnet-20240620"
+              required
+            />
           </div>
 
           {/* API Key */}
@@ -212,31 +243,17 @@ export function AddModelModal({ onClose, onAdd }: AddModelModalProps) {
                   checked={formData.hasEmbedding}
                   onCheckedChange={(checked) => setFormData({ ...formData, hasEmbedding: checked as boolean })}
                 />
-                <Label htmlFor="embedding" className="font-normal cursor-pointer">Embedding Model</Label>
+                <Label htmlFor="embedding" className="font-normal cursor-pointer">Embedding Support</Label>
               </div>
             </div>
           </div>
-
-          {/* Embedding Model (if enabled) */}
-          {formData.hasEmbedding && (
-            <div className="space-y-2">
-              <Label htmlFor="embeddingModel">Embedding Model Name</Label>
-              <Input
-                id="embeddingModel"
-                type="text"
-                value={formData.embeddingModel}
-                onChange={(e) => setFormData({ ...formData, embeddingModel: e.target.value })}
-                placeholder="e.g., text-embedding-3-large"
-              />
-            </div>
-          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
             <Button type="submit">
-              Add Model
+              {isEditing ? 'Save Changes' : 'Add Model'}
             </Button>
           </DialogFooter>
         </form>

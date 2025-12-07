@@ -1,6 +1,12 @@
-import React, { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
-import keycloak from './keycloak';
-import type { KeycloakProfile } from 'keycloak-js';
+import React, {
+    createContext,
+    useState,
+    useEffect,
+    useContext,
+    type ReactNode
+} from "react";
+import keycloak from "./keycloak";
+import type { KeycloakProfile } from "keycloak-js";
 
 interface AuthContextType {
     isAuthenticated: boolean;
@@ -12,27 +18,43 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-    const [userProfile, setUserProfile] = useState<KeycloakProfile | undefined>(undefined);
-    const [loading, setLoading] = useState<boolean>(true);
+// Prevent multiple init attempts
+let initPromise: Promise<boolean> | null = null;
 
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [userProfile, setUserProfile] = useState<KeycloakProfile | undefined>(undefined);
+    const [token, setToken] = useState<string | undefined>(undefined);
+    const [loading, setLoading] = useState(true);
+
+    // -----------------------------
+    // 1) Initialize Keycloak
+    // -----------------------------
     useEffect(() => {
         const initKeycloak = async () => {
-            try {
-                const authenticated = await keycloak.init({
-                    onLoad: 'login-required', // Force login on load
+            if (!initPromise) {
+                initPromise = keycloak.init({
+                    onLoad: "login-required",
                     checkLoginIframe: false,
                 });
+            }
+
+            try {
+                const authenticated = await initPromise;
 
                 setIsAuthenticated(authenticated);
+                setToken(keycloak.token ?? undefined);
 
                 if (authenticated) {
-                    const profile = await keycloak.loadUserProfile();
-                    setUserProfile(profile);
+                    try {
+                        const profile = await keycloak.loadUserProfile();
+                        setUserProfile(profile);
+                    } catch (err) {
+                        console.warn("Failed to load profile:", err);
+                    }
                 }
-            } catch (error) {
-                console.error('Failed to initialize Keycloak:', error);
+            } catch (err) {
+                console.error("Keycloak initialization failed:", err);
             } finally {
                 setLoading(false);
             }
@@ -41,18 +63,42 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         initKeycloak();
     }, []);
 
+    // -----------------------------
+    // 2) Token Refresh Interval
+    // -----------------------------
+    useEffect(() => {
+        if (!isAuthenticated) return;
+
+        const interval = setInterval(() => {
+            keycloak
+                .updateToken(30)
+                .then((refreshed) => {
+                    if (refreshed) {
+                        setToken(keycloak.token ?? undefined);
+                        // console.log("Token refreshed");
+                    }
+                })
+                .catch((err) => {
+                    console.error("Failed to refresh token:", err);
+                    keycloak.login();
+                });
+        }, 10000); // check every 10s
+
+        return () => clearInterval(interval);
+    }, [isAuthenticated]);
+
     const login = () => {
-        keycloak.login();
+        keycloak.login({ redirectUri: window.location.origin });
     };
 
     const logout = () => {
-        keycloak.logout();
+        keycloak.logout({ redirectUri: window.location.origin });
     };
 
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
             </div>
         );
     }
@@ -64,7 +110,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 userProfile,
                 login,
                 logout,
-                token: keycloak.token,
+                token
             }}
         >
             {children}
@@ -73,9 +119,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 };
 
 export const useAuth = (): AuthContextType => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
+    const ctx = useContext(AuthContext);
+    if (!ctx) {
+        throw new Error("useAuth must be used inside <AuthProvider>");
     }
-    return context;
+    return ctx;
 };

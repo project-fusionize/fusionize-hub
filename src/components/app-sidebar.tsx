@@ -22,6 +22,7 @@ import DashboardNavigation from "@/components/nav-main";
 import { ProjectSwitcher } from "@/components/project-switcher";
 import { ThemeModeToggle } from "./ui/theme-mode-toggle";
 import { useAuth } from "@/auth/AuthContext";
+import { Card } from "./ui/card";
 
 const dashboardRoutes: Route[] = [
   {
@@ -165,10 +166,12 @@ export function DashboardSidebar() {
         </motion.div>
       </SidebarHeader>
       <SidebarContent className="gap-4 px-2 py-4">
+        <Card className="p-0 m-0 bg-background">
+          <ProjectSwitcher projects={projects} />
+        </Card>
         <DashboardNavigation routes={dashboardRoutes} />
       </SidebarContent>
       <SidebarFooter className="px-2 gap-2">
-        <ProjectSwitcher projects={projects} />
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
