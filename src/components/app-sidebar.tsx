@@ -64,12 +64,13 @@ const dashboardRoutes: Route[] = [
         link: "/agents/prompts",
         icon: <MessageSquare className="size-4" />,
       },
-      {
-        title: "Storages",
-        link: "/agents/storages",
-        icon: <Database className="size-4" />,
-      },
     ],
+  },
+  {
+    id: "storage",
+    title: "Storage",
+    icon: <Database className="size-4" />,
+    link: "/storage",
   },
   {
     id: "settings",

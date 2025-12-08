@@ -3,7 +3,7 @@ import { Bot, Database, Zap, GitBranch, Clock, CheckCircle, Search } from 'lucid
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 
 interface NodeDetailPanelProps {
   node: {
@@ -156,22 +156,22 @@ export function NodeDetailPanel({ node }: NodeDetailPanelProps) {
       <div className="border-t border-border bg-card text-card-foreground">
         <div className="p-4 space-y-1 font-mono text-xs max-h-48 overflow-auto">
           {mockLogs
-              .filter((log) => log.toLowerCase().includes(logSearch.toLowerCase()))
-              .map((log, index) => (
-                  <div key={index} className="text-muted-foreground">
-                    {log}
-                  </div>
-              ))}
+            .filter((log) => log.toLowerCase().includes(logSearch.toLowerCase()))
+            .map((log, index) => (
+              <div key={index} className="text-muted-foreground">
+                {log}
+              </div>
+            ))}
         </div>
         <div className="p-4 border-t border-border">
           <div className="flex items-center gap-3">
-            <Search className="w-4 h-4 text-muted-foreground"/>
+            <Search className="w-4 h-4 text-muted-foreground" />
             <Input
-                type="text"
-                placeholder="Search logs..."
-                value={logSearch}
-                onChange={(e) => setLogSearch(e.target.value)}
-                className="h-8"
+              type="text"
+              placeholder="Search logs..."
+              value={logSearch}
+              onChange={(e) => setLogSearch(e.target.value)}
+              className="h-8"
             />
           </div>
         </div>

@@ -3,14 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-interface Workflow {
-  id: string;
-  name: string;
-  description: string;
-  totalSteps: number;
-  lastRunStatus: 'success' | 'running' | 'failed' | 'pending';
-  updatedAt: string;
-}
+import type { Workflow } from '../../hooks/useWorkflows';
 
 interface WorkflowCardProps {
   workflow: Workflow;
@@ -54,14 +47,19 @@ export function WorkflowCard({ workflow, onSelect }: WorkflowCardProps) {
             <span>{workflow.totalSteps} steps</span>
           </div>
         </div>
-        <CardTitle className="text-base">{workflow.name}</CardTitle>
+        <CardTitle className="text-base">
+          <div className="text-xs font-normal text-muted-foreground mt-1">
+            {workflow.domain}
+          </div>
+          {workflow.name}
+        </CardTitle>
       </CardHeader>
-      <CardContent className="pt-0 pb-2">
+      <CardContent className="pt-0">
         <p className="text-muted-foreground text-xs line-clamp-2">
           {workflow.description}
         </p>
       </CardContent>
-      <CardFooter className="pt-2 border-t text-xs text-muted-foreground flex justify-between items-center">
+      <CardFooter className="border-t text-xs text-muted-foreground flex justify-between items-center">
         <div className="flex items-center gap-1.5">
           <Clock className="w-3 h-3" />
           <span>{formatDate(workflow.updatedAt)}</span>

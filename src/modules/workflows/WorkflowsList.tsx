@@ -1,72 +1,35 @@
-import { Plus, Upload } from 'lucide-react';
+import { Plus, Upload, Loader2, RefreshCw } from 'lucide-react';
 import { WorkflowCard } from './WorkflowCard';
 import { Button } from '@/components/ui/button';
-
-interface Workflow {
-  id: string;
-  name: string;
-  description: string;
-  totalSteps: number;
-  lastRunStatus: 'success' | 'running' | 'failed' | 'pending';
-  updatedAt: string;
-}
-
-const mockWorkflows: Workflow[] = [
-  {
-    id: '1',
-    name: 'Loan Processing',
-    description: 'Complete loan application workflow with credit check and risk assessment',
-    totalSteps: 8,
-    lastRunStatus: 'success',
-    updatedAt: '2025-12-04T10:30:00Z',
-  },
-  {
-    id: '2',
-    name: 'Customer Onboarding',
-    description: 'AI-powered customer verification and document processing',
-    totalSteps: 5,
-    lastRunStatus: 'running',
-    updatedAt: '2025-12-04T09:15:00Z',
-  },
-  {
-    id: '3',
-    name: 'Invoice Automation',
-    description: 'Extract, validate and process invoices using AI agents',
-    totalSteps: 6,
-    lastRunStatus: 'success',
-    updatedAt: '2025-12-03T16:45:00Z',
-  },
-  {
-    id: '4',
-    name: 'Risk Assessment Pipeline',
-    description: 'Multi-stage risk evaluation with AI and external APIs',
-    totalSteps: 10,
-    lastRunStatus: 'failed',
-    updatedAt: '2025-12-03T14:20:00Z',
-  },
-  {
-    id: '5',
-    name: 'Document Classification',
-    description: 'Classify and route documents using ML models',
-    totalSteps: 4,
-    lastRunStatus: 'success',
-    updatedAt: '2025-12-02T11:00:00Z',
-  },
-  {
-    id: '6',
-    name: 'Fraud Detection',
-    description: 'Real-time fraud detection with multiple AI models',
-    totalSteps: 7,
-    lastRunStatus: 'pending',
-    updatedAt: '2025-12-01T08:30:00Z',
-  },
-];
+import { useWorkflows } from '../../hooks/useWorkflows';
 
 interface WorkflowsListProps {
   onWorkflowSelect: (id: string) => void;
 }
 
 export function WorkflowsList({ onWorkflowSelect }: WorkflowsListProps) {
+  const { workflows, loading, error, refresh } = useWorkflows();
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
+        <p className="text-destructive">{error}</p>
+        <Button variant="outline" onClick={refresh}>
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
       {/* Header */}
@@ -91,7 +54,7 @@ export function WorkflowsList({ onWorkflowSelect }: WorkflowsListProps) {
 
       {/* Workflows Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockWorkflows.map((workflow) => (
+        {workflows.map((workflow) => (
           <WorkflowCard
             key={workflow.id}
             workflow={workflow}

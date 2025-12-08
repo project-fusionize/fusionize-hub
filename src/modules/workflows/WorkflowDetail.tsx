@@ -24,7 +24,7 @@ interface WorkflowDetailProps {
   onBack: () => void;
 }
 
-export function WorkflowDetail({ workflowId, onBack }: WorkflowDetailProps) {
+export function WorkflowDetail({ workflowId: _workflowId, onBack }: WorkflowDetailProps) {
   const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
 
   // Mock workflow data

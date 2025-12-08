@@ -10,7 +10,7 @@ import { WorkflowDetail } from './modules/workflows/WorkflowDetail'
 import { AgentsModels } from './modules/agents/AgentsModels'
 import { AgentsTools } from './modules/agents/AgentsTools'
 import { AgentsPrompts } from './modules/agents/AgentsPrompts'
-import { AgentsStorages } from './modules/agents/AgentsStorages'
+import { AgentsStorages } from './modules/storage/AgentsStorages'
 import BPM from './Bpmn'
 
 function WorkflowsRoute() {
@@ -39,7 +39,7 @@ function App() {
               <Route path="/agents/models" element={<AgentsModels />} />
               <Route path="/agents/tools" element={<AgentsTools />} />
               <Route path="/agents/prompts" element={<AgentsPrompts />} />
-              <Route path="/agents/storages" element={<AgentsStorages />} />
+              <Route path="/storage" element={<AgentsStorages />} />
             </Routes>
           </SidebarInset>
         </div>
