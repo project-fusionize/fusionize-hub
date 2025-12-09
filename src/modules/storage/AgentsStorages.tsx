@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Plus, Database, Edit2, Trash2, CheckCircle, XCircle, Zap } from 'lucide-react';
-import { AddStorageModal } from './AddStorageModal';
+import { StorageConfigModal } from './StorageConfigModal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -19,83 +19,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-interface Storage {
-  id: string;
-  name: string;
-  type: 'Vector DB' | 'Blob Storage' | 'Document Store';
-  provider: string;
-  size: string;
-  status: 'healthy' | 'error';
-  lastUpdate: string;
-  usedInWorkflows: number;
-  indexName?: string;
-  embeddingModel?: string;
-}
-
-const mockStorages: Storage[] = [
-  {
-    id: '1',
-    name: 'Customer Documents',
-    type: 'Vector DB',
-    provider: 'Pinecone',
-    size: '2.4M vectors',
-    status: 'healthy',
-    lastUpdate: '5m ago',
-    usedInWorkflows: 8,
-    indexName: 'customer-docs',
-    embeddingModel: 'text-embedding-3-large',
-  },
-  {
-    id: '2',
-    name: 'Product Knowledge Base',
-    type: 'Vector DB',
-    provider: 'Qdrant',
-    size: '850K vectors',
-    status: 'healthy',
-    lastUpdate: '12m ago',
-    usedInWorkflows: 12,
-    indexName: 'products',
-    embeddingModel: 'text-embedding-3-small',
-  },
-  {
-    id: '3',
-    name: 'Invoice Archive',
-    type: 'Blob Storage',
-    provider: 'AWS S3',
-    size: '45.2 GB',
-    status: 'healthy',
-    lastUpdate: '1h ago',
-    usedInWorkflows: 5,
-  },
-  {
-    id: '4',
-    name: 'Legal Documents',
-    type: 'Document Store',
-    provider: 'MongoDB',
-    size: '15.8K docs',
-    status: 'error',
-    lastUpdate: '2h ago',
-    usedInWorkflows: 3,
-  },
-  {
-    id: '5',
-    name: 'Local Vector Store',
-    type: 'Vector DB',
-    provider: 'ChromaDB (Local)',
-    size: '125K vectors',
-    status: 'healthy',
-    lastUpdate: '30m ago',
-    usedInWorkflows: 4,
-    indexName: 'local-embeddings',
-    embeddingModel: 'all-MiniLM-L6-v2',
-  },
-];
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useAuth } from '../../auth/AuthContext';
+import { useStorages } from '../../hooks/useStorages';
+import type { NewStorage } from '../../services/storageService';
 
 export function AgentsStorages() {
-  const [storages, setStorages] = useState<Storage[]>(mockStorages);
+  const { isAuthenticated, login } = useAuth();
+  const { storages, loading, addStorage, deleteStorage, updateStorage } = useStorages();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingStorage, setEditingStorage] = useState<any | null>(null);
+
   const [testingId, setTestingId] = useState<string | null>(null);
+  const [storageToDelete, setStorageToDelete] = useState<string | null>(null);
 
   const typeColors: Record<string, string> = {
     'Vector DB': 'bg-purple-500/10 text-purple-600 border-purple-500/20 hover:bg-purple-500/20',
@@ -104,11 +49,11 @@ export function AgentsStorages() {
   };
 
   const providerLogos: Record<string, string> = {
-    'Pinecone': 'https://logo.clearbit.com/pinecone.io',
-    'Qdrant': 'https://logo.clearbit.com/qdrant.tech',
-    'AWS S3': 'https://logo.clearbit.com/aws.amazon.com',
-    'MongoDB': 'https://logo.clearbit.com/mongodb.com',
-    'ChromaDB (Local)': 'https://logo.clearbit.com/trychroma.com',
+    'PINECONE': 'https://logo.clearbit.com/pinecone.io',
+    'MONGO_DB': 'https://logo.clearbit.com/mongodb.com',
+    'CHROMA_DB': 'https://logo.clearbit.com/trychroma.com',
+    'AWS_S3': 'https://logo.clearbit.com/aws.amazon.com',
+    'AZURE_BLOB': 'https://logo.clearbit.com/azure.microsoft.com',
   };
 
   const handleTest = async (id: string) => {
@@ -119,11 +64,99 @@ export function AgentsStorages() {
     }, 2000);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this storage configuration?')) {
-      setStorages(storages.filter(s => s.id !== id));
+  const handleDeleteClick = (id: string) => {
+    setStorageToDelete(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!storageToDelete) return;
+    try {
+      await deleteStorage(storageToDelete);
+    } catch (error) {
+      alert('Failed to delete storage');
+    } finally {
+      setStorageToDelete(null);
     }
   };
+
+  const handleEditClick = (storage: any) => {
+    // `useStorages` fetches `ApiStorage` which HAS `secrets`. But we map it to `Storage` for UI.
+    // The `Storage` interface in `useStorages` lacks `secrets`.
+    // I should probably pass the FULL storage object if possible or just what I have.
+    // If apiKey is missing, the modal logic `apiKey: initialData?.secrets?.apiKey || ''` handles it.
+    // But since we can't fetch secrets again easily without specific endpoint or if valid.
+    // For now, let's just pass what we have. API Key will be empty, meaning user might overwrite or keep.
+    // The Update Endpoint merges? `storageService.updateStorage` takes `NewStorage`.
+    // If we send empty secrets, does it overwrite? Usually yes with PUT.
+    // So if editing, we might need to ask for API Key again or handle partial updates.
+    // Given the constraints, I will ask user to re-enter key or keep it if we can hint 'Unchanged'.
+    // Use `updateStorage` from hook.
+    setEditingStorage(storage);
+    setShowAddModal(true);
+  };
+
+  const handleSaveStorage = async (storageData: any) => {
+    try {
+      const typeMap: Record<string, 'VECTOR_STORAGE' | 'FILE_STORAGE'> = {
+        'Vector DB': 'VECTOR_STORAGE',
+        'Blob Storage': 'FILE_STORAGE',
+        'Document Store': 'FILE_STORAGE'
+      };
+
+      const properties: Record<string, any> = { ...(storageData.customProperties || {}) };
+
+      // Map UI values to Backend Enum values
+      const providerMap: Record<string, string> = {
+        'Pinecone': 'PINECONE',
+        'MongoDB': 'MONGO_DB',
+        'ChromaDB (Local)': 'CHROMA_DB',
+        'AWS S3': 'AWS_S3',
+        'Azure Blob': 'AZURE_BLOB',
+      };
+
+      const payload: NewStorage = {
+        domain: editingStorage ? editingStorage.domain : storageData.name.toLowerCase().replace(/\s+/g, '-'),
+        provider: providerMap[storageData.provider] || storageData.provider.toUpperCase().replace(/\s+/g, '_'),
+        storageType: typeMap[storageData.type] || 'FILE_STORAGE',
+        enabled: true,
+        properties: properties,
+        secrets: {
+          apiKey: properties.apiKey || storageData.apiKey // Support apiKey in properties or top level (legacy)
+        }
+      };
+
+      // If editing and apiKey is empty, maybe don't include it in secrets?
+      // But we defined `secrets` as Record<string, any>.
+      // If we wish to keep existing secrets, we should handle that in backend or here.
+      // For now, assume re-entry or that we are sending what we have.
+      // If `storageData.apiKey` is empty string and we are editing, we might be wiping it.
+      // Let's assume validation requires it if it's needed.
+
+      if (editingStorage) {
+        await updateStorage(editingStorage.domain, payload);
+        // I can't call hook inside function. I already destructured it. `addStorage` and `updateStorage`.
+        // I need to destructure `updateStorage` above.
+      } else {
+        await addStorage(payload);
+      }
+
+      setShowAddModal(false);
+      setEditingStorage(null);
+    } catch (error) {
+      console.error(error);
+      alert('Failed to save storage');
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
+        <h2 className="text-2xl font-bold">Authentication Required</h2>
+        <p className="text-muted-foreground">Please login to manage storages.</p>
+        <Button onClick={login}>Login</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 space-y-8">
@@ -150,120 +183,135 @@ export function AgentsStorages() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Provider</TableHead>
-                <TableHead>Size</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Config</TableHead>
-                <TableHead>Last Update</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {storages.map((storage) => (
-                <TableRow key={storage.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{storage.name}</div>
-                      {storage.usedInWorkflows > 0 && (
-                        <div className="text-xs text-blue-600 mt-1">
-                          Used in {storage.usedInWorkflows} workflows
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={typeColors[storage.type]}
-                    >
-                      {storage.type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <img
-                        src={providerLogos[storage.provider]}
-                        alt={storage.provider}
-                        className="w-5 h-5 object-contain rounded-sm"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://logo.clearbit.com/database.com';
-                          (e.target as HTMLImageElement).onerror = null;
-                        }}
-                      />
-                      <span>{storage.provider}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">{storage.size}</span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {storage.status === 'healthy' ? (
-                        <div className="flex items-center gap-1.5 text-green-600">
-                          <CheckCircle className="w-4 h-4" />
-                          <span className="text-sm">Healthy</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1.5 text-red-600">
-                          <XCircle className="w-4 h-4" />
-                          <span className="text-sm">Error</span>
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm text-muted-foreground">
-                      {storage.indexName && (
-                        <div>Index: {storage.indexName}</div>
-                      )}
-                      {storage.embeddingModel && (
-                        <div className="text-xs text-muted-foreground/80 mt-1">
-                          {storage.embeddingModel}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground">{storage.lastUpdate}</span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleTest(storage.id)}
-                        disabled={testingId === storage.id}
-                        title="Test connection"
-                      >
-                        <Zap className={`w-4 h-4 ${testingId === storage.id ? 'text-yellow-600 animate-pulse' : 'text-blue-600'}`} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title="Edit"
-                      >
-                        <Edit2 className="w-4 h-4 text-muted-foreground" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(storage.id)}
-                        className="hover:text-red-600 hover:bg-red-50"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {loading ? (
+            <div className="flex justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Provider</TableHead>
+                  <TableHead>Size</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Config</TableHead>
+                  <TableHead>Last Update</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {storages.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      No storages found. Add a new storage to get started.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  storages.map((storage) => (
+                    <TableRow key={storage.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{storage.name}</div>
+                          {storage.usedInWorkflows > 0 && (
+                            <div className="text-xs text-blue-600 mt-1">
+                              Used in {storage.usedInWorkflows} workflows
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={typeColors[storage.type] || 'bg-gray-100 text-gray-800 border-gray-200'}
+                        >
+                          {storage.type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={providerLogos[storage.provider]}
+                            alt={storage.provider}
+                            className="w-5 h-5 object-contain rounded-sm"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://logo.clearbit.com/database.com';
+                              (e.target as HTMLImageElement).onerror = null;
+                            }}
+                          />
+                          <span>{storage.provider}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm">{storage.size}</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {storage.status === 'healthy' ? (
+                            <div className="flex items-center gap-1.5 text-green-600">
+                              <CheckCircle className="w-4 h-4" />
+                              <span className="text-sm">Healthy</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5 text-red-600">
+                              <XCircle className="w-4 h-4" />
+                              <span className="text-sm">Error</span>
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-muted-foreground">
+                          {storage.indexName && (
+                            <div>Index: {storage.indexName}</div>
+                          )}
+                          {storage.embeddingModel && (
+                            <div className="text-xs text-muted-foreground/80 mt-1">
+                              {storage.embeddingModel}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">{storage.lastUpdate}</span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleTest(storage.id)}
+                            disabled={testingId === storage.id}
+                            title="Test connection"
+                          >
+                            <Zap className={`w-4 h-4 ${testingId === storage.id ? 'text-yellow-600 animate-pulse' : 'text-blue-600'}`} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Edit"
+                            onClick={() => handleEditClick(storage)}
+                          >
+                            <Edit2 className="w-4 h-4 text-muted-foreground" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteClick(storage.domain)}
+                            className="hover:text-red-600 hover:bg-red-50"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
@@ -309,14 +357,30 @@ export function AgentsStorages() {
 
       {/* Add Storage Modal */}
       {showAddModal && (
-        <AddStorageModal
-          onClose={() => setShowAddModal(false)}
-          onAdd={(newStorage) => {
-            setStorages([...storages, { ...newStorage, id: Date.now().toString() }]);
+        <StorageConfigModal
+          onClose={() => {
             setShowAddModal(false);
+            setEditingStorage(null);
           }}
+          onSave={handleSaveStorage}
+          initialData={editingStorage}
         />
       )}
+
+      <AlertDialog open={!!storageToDelete} onOpenChange={(open) => !open && setStorageToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the storage configuration.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

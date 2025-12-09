@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import { chatModelService } from '../../services/chatModelService';
@@ -14,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { KeyValueTable } from "@/components/key-value-table";
 import {
   Select,
   SelectContent,
@@ -36,16 +36,29 @@ export function ModelConfigModal({ onClose, onSave, initialData }: ModelConfigMo
     provider: initialData?.provider || 'OpenAI',
     modelName: initialData?.modelName || '',
     apiKey: initialData?.apiKey || '',
-    temperature: initialData?.temperature || 0.7,
-    maxTokens: initialData?.maxTokens || 4096,
     hasVision: initialData?.mode?.includes('Vision') || false,
     hasEmbedding: initialData?.mode?.includes('Embedding') || false,
   });
 
   const { token } = useAuth();
-
-
   const isEditing = !!initialData;
+
+  const [customProperties, setCustomProperties] = useState<Record<string, string>>(() => {
+    const props: Record<string, string> = {
+      temperature: String(initialData?.temperature ?? initialData?.properties?.temperature ?? 0.7),
+      maxTokens: String(initialData?.maxTokens ?? initialData?.properties?.maxTokens ?? 4096)
+    };
+
+    if (initialData?.properties) {
+      Object.entries(initialData.properties).forEach(([key, value]) => {
+        // defined keys above, don't overwrite if we want to ensure defaults, 
+        // but actually initialData.properties should win if present.
+        props[key] = String(value);
+      });
+    }
+    return props;
+  });
+
 
   const [showApiKey, setShowApiKey] = useState(false);
   const [validating, setValidating] = useState(false);
@@ -90,10 +103,7 @@ export function ModelConfigModal({ onClose, onSave, initialData }: ModelConfigMo
       modelName: formData.modelName,
       apiKey: formData.apiKey,
       capabilities: capabilities,
-      properties: {
-        temperature: formData.temperature,
-        maxTokens: formData.maxTokens,
-      },
+      properties: customProperties,
     });
   };
 
@@ -221,31 +231,6 @@ export function ModelConfigModal({ onClose, onSave, initialData }: ModelConfigMo
             )}
           </div>
 
-          {/* Configuration */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="temperature">Temperature</Label>
-              <Input
-                id="temperature"
-                type="number"
-                step="0.1"
-                min="0"
-                max="2"
-                value={formData.temperature}
-                onChange={(e) => setFormData({ ...formData, temperature: parseFloat(e.target.value) })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="maxTokens">Max Tokens</Label>
-              <Input
-                id="maxTokens"
-                type="number"
-                value={formData.maxTokens}
-                onChange={(e) => setFormData({ ...formData, maxTokens: parseInt(e.target.value) })}
-              />
-            </div>
-          </div>
-
           {/* Capabilities */}
           <div className="space-y-3">
             <Label>Capabilities</Label>
@@ -267,6 +252,15 @@ export function ModelConfigModal({ onClose, onSave, initialData }: ModelConfigMo
                 <Label htmlFor="embedding" className="font-normal cursor-pointer">Embedding Support</Label>
               </div>
             </div>
+          </div>
+
+          <div className="pt-2">
+            <KeyValueTable
+              initialData={customProperties}
+              onChange={setCustomProperties}
+              title="Properties"
+              description="Configure model parameters and additional settings."
+            />
           </div>
 
           <DialogFooter>
