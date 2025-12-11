@@ -48,8 +48,10 @@ export function WorkflowDiagram({ onNodeSelect, selectedNodeId }: WorkflowDiagra
         position: { x: 250, y: 50 },
         data: {
           label: 'Start Application',
+          nodeKey: 'startApplication',
           nodeType: 'start',
           status: 'success',
+          description: 'Start of the workflow',
         },
       },
       {
@@ -58,6 +60,7 @@ export function WorkflowDiagram({ onNodeSelect, selectedNodeId }: WorkflowDiagra
         position: { x: 250, y: 150 },
         data: {
           label: 'Verify Identity',
+          nodeKey: 'verifyIdentity',
           nodeType: 'ai',
           status: 'success',
           description: 'AI-powered identity verification',
@@ -69,6 +72,7 @@ export function WorkflowDiagram({ onNodeSelect, selectedNodeId }: WorkflowDiagra
         position: { x: 250, y: 250 },
         data: {
           label: 'Document Extraction',
+          nodeKey: 'documentExtraction',
           nodeType: 'tool',
           status: 'success',
           description: 'Extract data from uploaded documents',
@@ -80,6 +84,7 @@ export function WorkflowDiagram({ onNodeSelect, selectedNodeId }: WorkflowDiagra
         position: { x: 250, y: 350 },
         data: {
           label: 'Credit Score API',
+          nodeKey: 'creditScoreApi',
           nodeType: 'api',
           status: 'success',
           description: 'Fetch credit score from bureau',
@@ -91,6 +96,7 @@ export function WorkflowDiagram({ onNodeSelect, selectedNodeId }: WorkflowDiagra
         position: { x: 250, y: 450 },
         data: {
           label: 'Risk Assessment',
+          nodeKey: 'riskAssessment',
           nodeType: 'decision',
           status: 'running',
           description: 'Evaluate loan risk',
@@ -102,6 +108,7 @@ export function WorkflowDiagram({ onNodeSelect, selectedNodeId }: WorkflowDiagra
         position: { x: 100, y: 570 },
         data: {
           label: 'Approve Loan',
+          nodeKey: 'approveLoan',
           nodeType: 'tool',
           status: 'pending',
           description: 'Auto-approve eligible loans',
@@ -113,6 +120,7 @@ export function WorkflowDiagram({ onNodeSelect, selectedNodeId }: WorkflowDiagra
         position: { x: 400, y: 570 },
         data: {
           label: 'Manual Review',
+          nodeKey: 'manualReview',
           nodeType: 'tool',
           status: 'pending',
           description: 'Route to human review',
@@ -124,6 +132,7 @@ export function WorkflowDiagram({ onNodeSelect, selectedNodeId }: WorkflowDiagra
         position: { x: 250, y: 690 },
         data: {
           label: 'Send Notification',
+          nodeKey: 'sendNotification',
           nodeType: 'api',
           status: 'pending',
           description: 'Notify customer of decision',

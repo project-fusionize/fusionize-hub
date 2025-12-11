@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ChevronLeft, Play, Download, FileText } from 'lucide-react';
+import { ChevronLeft, Play, Download, FileText, PanelLeft } from 'lucide-react';
 import { WorkflowDiagram } from './WorkflowDiagram';
 import { NodeDetailPanel } from './NodeDetailPanel';
+import { WorkflowExecutionsList } from './WorkflowExecutionsList';
 import { Button } from '@/components/ui/button';
 import {
   Breadcrumb,
@@ -26,6 +27,7 @@ interface WorkflowDetailProps {
 
 export function WorkflowDetail({ workflowId: _workflowId, onBack }: WorkflowDetailProps) {
   const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
+  const [isExecutionsListOpen, setIsExecutionsListOpen] = useState(true);
 
   // Mock workflow data
   const workflowName = 'Loan Processing';
@@ -83,13 +85,33 @@ export function WorkflowDetail({ workflowId: _workflowId, onBack }: WorkflowDeta
 
       {/* Main Content: Diagram + Details */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Panel: Diagram (65%) */}
-        <div className="flex-[65] bg-muted/30 overflow-hidden">
+        {/* Left Panel: Executions List */}
+        <div
+          className={`bg-background border-r border-border transition-all duration-300 ease-in-out overflow-hidden ${isExecutionsListOpen ? 'w-64' : 'w-0'
+            }`}
+        >
+          <div className="w-64 h-full">
+            <WorkflowExecutionsList />
+          </div>
+        </div>
+
+        {/* Center Panel: Diagram */}
+        <div className="flex-1 bg-muted/30 overflow-hidden relative">
+          {/* Toggle Button for Executions List */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setIsExecutionsListOpen(!isExecutionsListOpen)}
+            className="absolute left-4 top-4 z-10 bg-background/80 backdrop-blur-sm shadow-sm hover:bg-background h-8 w-8"
+          >
+            <PanelLeft className="h-4 w-4" />
+          </Button>
+
           <WorkflowDiagram onNodeSelect={setSelectedNode} selectedNodeId={selectedNode?.id} />
         </div>
 
-        {/* Right Panel: Node Details (35%) */}
-        <div className="flex-[35] bg-background border-l border-border">
+        {/* Right Panel: Node Details (Fixed Width) */}
+        <div className="w-[450px] bg-background border-l border-border transition-all duration-300">
           <NodeDetailPanel node={selectedNode} />
         </div>
       </div>
