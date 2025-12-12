@@ -63,12 +63,16 @@ export const useWorkflowGraph = (
         }
 
         const statusMap = new Map<string, string>();
+        const contextMap = new Map<string, any>();
 
         if (execution && execution.nodes) {
             const traverse = (nodes: any[]) => {
                 nodes.forEach(node => {
                     if (node.workflowNodeId) {
                         statusMap.set(node.workflowNodeId, node.state?.toLowerCase() || 'pending');
+                        if (node.stageContext) {
+                            contextMap.set(node.workflowNodeId, node.stageContext);
+                        }
                     }
                     if (node.children) {
                         traverse(node.children);
@@ -80,14 +84,49 @@ export const useWorkflowGraph = (
 
         const newNodes: Node[] = [];
         const newEdges: Edge[] = [];
+        const parentMap = new Map<string, string>();
+
+        // Build parent map first
+        if (workflow?.nodeMap) {
+            Object.values(workflow.nodeMap).forEach((node) => {
+                if (node.childrenIds) {
+                    node.childrenIds.forEach(childId => {
+                        parentMap.set(childId, node.workflowNodeId);
+                    });
+                }
+            });
+        }
+
+        const defaultRootContext = {
+            data: {},
+            resources: {},
+            decisions: [],
+            graphNodes: [],
+            runtimeData: null
+        };
 
         // Build nodes from workflow definition
         Object.values(workflow.nodeMap).forEach((node) => {
             let nodeType = 'custom';
 
             let status = 'pending';
+            let stageContext = undefined;
+            let inputContext = undefined;
+
             if (executionId && execution) {
                 status = statusMap.get(node.workflowNodeId) || 'pending';
+                stageContext = contextMap.get(node.workflowNodeId);
+
+                // Determine input context
+                const parentId = parentMap.get(node.workflowNodeId);
+                if (!parentId) {
+                    // Root node
+                    inputContext = defaultRootContext;
+                } else {
+                    // Child node - use parent's context
+                    inputContext = contextMap.get(parentId);
+                }
+
                 if (status === 'success') status = 'success';
                 if (status === 'done') status = 'success';
                 if (status === 'running') status = 'running';
@@ -111,6 +150,8 @@ export const useWorkflowGraph = (
                     nodeType: uiNodeType,
                     status: status,
                     component: node.component,
+                    stageContext: stageContext,
+                    inputContext: inputContext,
                 }
             });
 
