@@ -7,7 +7,7 @@ interface CustomNodeData {
   nodeKey: string;
   nodeType: 'start' | 'ai' | 'tool' | 'api' | 'decision';
   status: 'success' | 'running' | 'failed' | 'pending';
-  description?: string;
+  component?: string;
   selected?: boolean;
 }
 
@@ -86,10 +86,9 @@ export function CustomNode({ data }: { data: CustomNodeData }) {
           </div>
         </div>
 
-        {/* Node Description (if present) */}
-        {data.description && (
+        {data.component && (
           <div className="px-3 py-2 text-sm text-muted-foreground">
-            {data.description}
+            <div className="truncate text-[10px] text-muted-foreground font-mono mt-0.5">{data.component}</div>
           </div>
         )}
       </div>
