@@ -7,7 +7,7 @@ import {
 } from '@xyflow/react';
 import type { Workflow } from '../../store/slices/workflowsSlice';
 import type { Execution } from '../../store/slices/executionsSlice';
-import { useWorkflowGraph } from '../../hooks/useWorkflowGraph';
+import { useWorkflowGraph, type NodeData } from '../../hooks/useWorkflowGraph';
 import '@xyflow/react/dist/style.css';
 import { CustomNode } from './CustomNode';
 import { useTheme } from '@/components/ui/theme-provider';
@@ -17,7 +17,7 @@ const nodeTypes = {
 };
 
 interface WorkflowDiagramProps {
-  onNodeSelect: (node: any) => void;
+  onNodeSelect: (node: NodeData & { id: string }) => void;
   selectedNodeId?: string;
   executionId?: string;
   workflow?: Workflow;
@@ -41,11 +41,12 @@ export function WorkflowDiagram({ onNodeSelect, selectedNodeId, executionId, wor
   }, [theme]);
 
   const onNodeClick = useCallback(
-    (_: any, node: Node) => {
+    (_: any, node: Node<NodeData>) => {
       onNodeSelect({
         id: node.id,
         label: node.data.label,
-        type: node.data.nodeType,
+        nodeKey: node.data.nodeKey,
+        nodeType: node.data.nodeType,
         status: node.data.status,
         component: node.data.component,
         stageContext: node.data.stageContext,

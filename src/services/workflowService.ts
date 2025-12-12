@@ -36,8 +36,8 @@ export interface ApiWorkflowExecution {
     id: string;
     workflowExecutionId: string;
     workflowId: string;
-    nodes: any[]; // We can define this more strictly if needed, but for now 'any' or the structure from JSON is fine
-    status: 'IDLE' | 'RUNNING' | 'SUCCESS' | 'FAILED' | 'PAUSED'; // Adjust status based on API
+    nodes: any[];
+    status: 'IDLE' | 'IN_PROGRESS' | 'SUCCESS' | 'ERROR' | 'TERMINATED';
 }
 
 export interface WorkflowExecutionsApiResponse {

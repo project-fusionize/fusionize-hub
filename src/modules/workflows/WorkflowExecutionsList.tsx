@@ -107,7 +107,7 @@ function StatusBadge({ status }: { status: Execution['status'] }) {
             return (
                 <Badge variant="outline" className="text-muted-foreground">
                     <Clock className="w-3 h-3" />
-                    Pending
+                    Idle
                 </Badge>
             );
     }

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ChevronLeft, Play, Download, FileText, PanelLeft } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Play, Download, FileText, PanelLeft } from 'lucide-react';
 import { WorkflowDiagram } from './WorkflowDiagram';
 import { NodeDetailPanel } from './NodeDetailPanel';
 import { WorkflowExecutionsList } from './WorkflowExecutionsList';
@@ -17,13 +17,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-
-interface WorkflowNode {
-  id: string;
-  type: string;
-  label: string;
-  status: 'success' | 'running' | 'failed' | 'pending';
-}
+import type { NodeData } from '../../hooks/useWorkflowGraph';
 
 interface WorkflowDetailProps {
   workflowId: string;
@@ -32,7 +26,7 @@ interface WorkflowDetailProps {
 }
 
 export function WorkflowDetail({ workflowId: _workflowId, executionId, onBack }: WorkflowDetailProps) {
-  const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
+  const [selectedNode, setSelectedNode] = useState<(NodeData & { id: string }) | null>(null);
   const [isExecutionsListOpen, setIsExecutionsListOpen] = useState(true);
   const { workflows } = useWorkflows();
   const navigate = useNavigate();
@@ -41,6 +35,11 @@ export function WorkflowDetail({ workflowId: _workflowId, executionId, onBack }:
     executions.find((e: Execution) => e.id === executionId),
     [executions, executionId]
   );
+
+  // Clear selected node when switching executions
+  useEffect(() => {
+    setSelectedNode(null);
+  }, [executionId]);
 
   const handleExecutionSelect = (execution: Execution) => {
     navigate(`/workflows/${_workflowId}/${execution.id}`);

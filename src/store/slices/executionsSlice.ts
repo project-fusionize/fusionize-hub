@@ -31,8 +31,8 @@ export const fetchExecutions = createAsyncThunk(
         const mappedExecutions: Execution[] = apiExecutions.map(exec => {
             let status: Execution['status'] = 'idle';
             if (exec.status === 'SUCCESS') status = 'done';
-            else if (exec.status === 'FAILED') status = 'error';
-            else if (exec.status === 'RUNNING') status = 'inprogress';
+            else if (exec.status === 'ERROR') status = 'error';
+            else if (exec.status === 'IN_PROGRESS') status = 'inprogress';
 
             return {
                 id: exec.workflowExecutionId,

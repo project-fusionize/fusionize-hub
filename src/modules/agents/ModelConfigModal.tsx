@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import { chatModelService } from '../../services/chatModelService';

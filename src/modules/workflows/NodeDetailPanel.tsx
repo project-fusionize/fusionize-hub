@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bot, Database, Zap, GitBranch, Clock, CheckCircle, Search, Loader2, XCircle, Circle, ArrowRightLeft } from 'lucide-react';
+import { Clock, Search, ArrowRightLeft, GitBranch } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -7,18 +7,21 @@ import { JsonViewer } from '@/components/ui/json-viewer';
 import { JsonDiffViewer } from '@/components/ui/json-diff-viewer';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
+
+import type { NodeData } from '../../hooks/useWorkflowGraph';
+
+import { NodeLegendModal } from './NodeLegendModal';
+import { typeIcons, statusConfig } from './node-visuals';
 
 interface NodeDetailPanelProps {
-  node: {
-    id: string;
-    label: string;
-    type: string;
-    status: string;
-    component?: string;
-    stageContext?: any;
-    inputContext?: any;
-  } | null;
+  node: (NodeData & { id: string }) | null;
 }
 
 export function NodeDetailPanel({ node }: NodeDetailPanelProps) {
@@ -41,46 +44,7 @@ export function NodeDetailPanel({ node }: NodeDetailPanelProps) {
     );
   }
 
-  const typeIcons = {
-    ai: { icon: Bot, label: 'AI Agent', variant: 'default' as const },
-    tool: { icon: Zap, label: 'Custom Tool', variant: 'secondary' as const },
-    api: { icon: Database, label: 'API Call', variant: 'outline' as const },
-    decision: { icon: GitBranch, label: 'Decision Gateway', variant: 'destructive' as const },
-    start: { icon: CheckCircle, label: 'Start', variant: 'outline' as const },
-  };
-
-  const statusConfig = {
-    success: {
-      icon: CheckCircle,
-      color: 'text-green-600',
-      bg: 'bg-green-500/10',
-      borderColor: 'border-green-500/20',
-      badgeVariant: 'outline' as const // We'll stick to outline logic but customize styles
-    },
-    running: {
-      icon: Loader2,
-      color: 'text-yellow-600',
-      bg: 'bg-yellow-500/10',
-      borderColor: 'border-yellow-500/20',
-      badgeVariant: 'secondary' as const
-    },
-    failed: {
-      icon: XCircle,
-      color: 'text-red-600',
-      bg: 'bg-red-500/10',
-      borderColor: 'border-red-500/20',
-      badgeVariant: 'destructive' as const
-    },
-    pending: {
-      icon: Circle,
-      color: 'text-muted-foreground',
-      bg: 'bg-muted',
-      borderColor: 'border-border/50',
-      badgeVariant: 'outline' as const
-    },
-  };
-
-  const typeConfig = typeIcons[node.type as keyof typeof typeIcons] || typeIcons.tool;
+  const typeConfig = typeIcons[node.nodeType as keyof typeof typeIcons] || typeIcons.tool;
   const statusInfo = statusConfig[node.status as keyof typeof statusConfig] || statusConfig.pending;
 
   const TypeIcon = typeConfig.icon;
@@ -89,22 +53,22 @@ export function NodeDetailPanel({ node }: NodeDetailPanelProps) {
   // Mock execution data
   const executionTimeline = [
     { time: '12:01:33', event: `Started: ${node.label}` },
-    { time: '12:01:34', event: node.type === 'ai' ? 'AI Model: gpt-4o' : 'Initializing...' },
-    { time: '12:01:35', event: node.type === 'api' ? 'API: creditBureau.getScore → 720' : 'Processing data...' },
+    { time: '12:01:34', event: node.nodeType.includes('ai') ? 'AI Model: gpt-4o' : 'Initializing...' },
+    { time: '12:01:35', event: node.nodeType === 'sys-task' ? 'System Op: creditBureau.getScore' : 'Processing data...' },
     { time: '12:01:36', event: 'Completed in 2.1s' },
   ];
 
   const mockMetadata = {
     duration: '2.1s',
-    cost: node.type === 'ai' ? '$0.0042' : 'N/A',
-    tokens: node.type === 'ai' ? { input: 234, output: 89 } : undefined,
+    cost: node.nodeType.includes('ai') ? '$0.0042' : 'N/A',
+    tokens: node.nodeType.includes('ai') ? { input: 234, output: 89 } : undefined,
     retries: 0,
   };
 
   const mockLogs = [
     '[12:01:33] INFO: Node execution started',
     '[12:01:34] DEBUG: Loading configuration',
-    `[12:01:34] INFO: ${node.type === 'ai' ? 'Connecting to AI model endpoint' : 'Initializing process'}`,
+    `[12:01:34] INFO: ${node.nodeType.includes('ai') ? 'Connecting to AI model endpoint' : 'Initializing process'}`,
     '[12:01:35] DEBUG: Request sent successfully',
     '[12:01:35] INFO: Response received',
     '[12:01:36] INFO: Validation passed',
@@ -116,24 +80,47 @@ export function NodeDetailPanel({ node }: NodeDetailPanelProps) {
       {/* Node Summary */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-2">
-          <Badge variant={typeConfig.variant} className="gap-1 h-5 px-1.5 text-[10px] uppercase tracking-wider font-semibold">
-            <TypeIcon className="w-3 h-3" />
-            {typeConfig.label}
-          </Badge>
-          {node.status && (
-            <Badge
-              variant="outline"
-              className={cn(
-                "h-5 px-1.5 text-[10px] capitalize gap-1",
-                statusInfo.bg,
-                statusInfo.color,
-                statusInfo.borderColor
+          <div className="flex gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant={typeConfig.variant} className="gap-1 h-5 px-1.5 text-[10px] uppercase tracking-wider font-semibold hover:cursor-help">
+                    <TypeIcon className="w-3 h-3" />
+                    {typeConfig.label}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{typeConfig.description}</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {node.status && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "h-5 px-1.5 text-[10px] capitalize gap-1 hover:cursor-help",
+                        statusInfo.bg,
+                        statusInfo.color,
+                        statusInfo.borderColor
+                      )}
+                    >
+                      <StatusIcon className={cn("w-3 h-3", node.status === 'working' ? "animate-spin" : node.status === 'idle' ? "animate-ping" : "")} />
+                      {node.status}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{statusInfo.description}</p>
+                  </TooltipContent>
+                </Tooltip>
               )}
-            >
-              <StatusIcon className={cn("w-3 h-3", node.status === 'running' && "animate-spin")} />
-              {node.status}
-            </Badge>
-          )}
+            </TooltipProvider>
+
+            <div className="ml-1 flex items-center">
+              <NodeLegendModal />
+            </div>
+          </div>
         </div>
 
         <h2 className="text-lg font-semibold truncate leading-tight mb-1" title={node.label}>{node.label}</h2>
