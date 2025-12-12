@@ -4,6 +4,9 @@ import { WorkflowDiagram } from './WorkflowDiagram';
 import { NodeDetailPanel } from './NodeDetailPanel';
 import { WorkflowExecutionsList } from './WorkflowExecutionsList';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import { useWorkflows } from '../../hooks/useWorkflows';
+import type { Execution } from '../../hooks/useWorkflowExecutions';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -22,16 +25,22 @@ interface WorkflowNode {
 
 interface WorkflowDetailProps {
   workflowId: string;
+  executionId?: string;
   onBack: () => void;
 }
 
-export function WorkflowDetail({ workflowId: _workflowId, onBack }: WorkflowDetailProps) {
+export function WorkflowDetail({ workflowId: _workflowId, executionId, onBack }: WorkflowDetailProps) {
   const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
   const [isExecutionsListOpen, setIsExecutionsListOpen] = useState(true);
+  const { workflows } = useWorkflows();
+  const navigate = useNavigate();
 
-  // Mock workflow data
-  const workflowName = 'Loan Processing';
-  const runId = '#2081';
+  const handleExecutionSelect = (execution: Execution) => {
+    navigate(`/workflows/${_workflowId}/${execution.id}`);
+  };
+
+  const workflow = workflows.find(w => w.id === _workflowId);
+  const runId = executionId ? `#${executionId.slice(-8)}` : '';
 
   return (
     <div className="flex flex-col h-full">
@@ -39,16 +48,6 @@ export function WorkflowDetail({ workflowId: _workflowId, onBack }: WorkflowDeta
       <div className="bg-background border-b border-border px-8 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onBack}
-              className="gap-2 text-muted-foreground hover:text-foreground pl-0 hover:bg-transparent"
-            >
-              <ChevronLeft className="w-5 h-5" />
-              Back
-            </Button>
-
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
@@ -56,11 +55,11 @@ export function WorkflowDetail({ workflowId: _workflowId, onBack }: WorkflowDeta
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>{workflowName}</BreadcrumbPage>
+                  <BreadcrumbPage>{workflow?.domain || _workflowId}</BreadcrumbPage>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbPage className="text-primary">Run {runId}</BreadcrumbPage>
+                  <BreadcrumbPage className="text-primary">{runId}</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
@@ -91,7 +90,11 @@ export function WorkflowDetail({ workflowId: _workflowId, onBack }: WorkflowDeta
             }`}
         >
           <div className="w-64 h-full">
-            <WorkflowExecutionsList />
+            <WorkflowExecutionsList
+              workflowId={_workflowId}
+              selectedId={executionId}
+              onSelect={handleExecutionSelect}
+            />
           </div>
         </div>
 
@@ -107,7 +110,11 @@ export function WorkflowDetail({ workflowId: _workflowId, onBack }: WorkflowDeta
             <PanelLeft className="h-4 w-4" />
           </Button>
 
-          <WorkflowDiagram onNodeSelect={setSelectedNode} selectedNodeId={selectedNode?.id} />
+          <WorkflowDiagram
+            onNodeSelect={setSelectedNode}
+            selectedNodeId={selectedNode?.id}
+            executionId={executionId}
+          />
         </div>
 
         {/* Right Panel: Node Details (Fixed Width) */}

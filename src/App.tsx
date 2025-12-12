@@ -12,6 +12,7 @@ import { AgentsTools } from './modules/agents/AgentsTools'
 import { AgentsPrompts } from './modules/agents/AgentsPrompts'
 import { AgentsStorages } from './modules/storage/AgentsStorages'
 import BPM from './Bpmn'
+import { useWebSocketSubscription } from './hooks/useWebSocketSubscription'
 
 function WorkflowsRoute() {
   const navigate = useNavigate();
@@ -19,12 +20,13 @@ function WorkflowsRoute() {
 }
 
 function WorkflowDetailRoute() {
-  const { id } = useParams();
+  const { id, executionId } = useParams();
   const navigate = useNavigate();
-  return <WorkflowDetail workflowId={id || ''} onBack={() => navigate('/workflows')} />;
+  return <WorkflowDetail workflowId={id || ''} executionId={executionId} onBack={() => navigate('/workflows')} />;
 }
 
 function App() {
+  useWebSocketSubscription();
   return (
     <BrowserRouter>
       <SidebarProvider>
@@ -36,6 +38,7 @@ function App() {
               <Route path="/health" element={<HealthStatus />} />
               <Route path="/workflows" element={<WorkflowsRoute />} />
               <Route path="/workflows/:id" element={<WorkflowDetailRoute />} />
+              <Route path="/workflows/:id/:executionId" element={<WorkflowDetailRoute />} />
               <Route path="/agents/models" element={<AgentsModels />} />
               <Route path="/agents/tools" element={<AgentsTools />} />
               <Route path="/agents/prompts" element={<AgentsPrompts />} />

@@ -20,9 +20,10 @@ const nodeTypes = {
 interface WorkflowDiagramProps {
   onNodeSelect: (node: any) => void;
   selectedNodeId?: string;
+  executionId?: string;
 }
 
-export function WorkflowDiagram({ onNodeSelect, selectedNodeId }: WorkflowDiagramProps) {
+export function WorkflowDiagram({ onNodeSelect, selectedNodeId, executionId }: WorkflowDiagramProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { theme } = useTheme();
@@ -40,6 +41,12 @@ export function WorkflowDiagram({ onNodeSelect, selectedNodeId }: WorkflowDiagra
   }, [theme]);
 
   useEffect(() => {
+    if (!executionId) {
+      setNodes([]);
+      setEdges([]);
+      return;
+    }
+
     // Mock workflow data - represents a loan processing workflow
     const initialNodes: Node[] = [
       {
@@ -211,7 +218,7 @@ export function WorkflowDiagram({ onNodeSelect, selectedNodeId }: WorkflowDiagra
 
     setNodes(initialNodes);
     setEdges(initialEdges);
-  }, [setNodes, setEdges]);
+  }, [setNodes, setEdges, executionId]);
 
   const onNodeClick = useCallback(
     (_: any, node: Node) => {
