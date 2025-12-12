@@ -1,81 +1,101 @@
 import { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
+import { Client } from '@stomp/stompjs';
 import { addExecution, updateExecution } from '../store/slices/executionsSlice';
 import { updateWorkflow } from '../store/slices/workflowsSlice';
+import { useAuth } from '../auth/AuthContext';
 
 // Placeholder for WebSocket URL - in a real app this would come from env or config
-const WS_URL = 'ws://localhost:8081/ws';
+const WS_URL = 'ws://localhost:8081/ws/1.0';
+// Assumed STOMP destination
+const DESTINATION = '/topic/executions';
 
 export const useWebSocketSubscription = () => {
     const dispatch = useDispatch();
-    const ws = useRef<WebSocket | null>(null);
+    const clientRef = useRef<Client | null>(null);
+    const { token } = useAuth();
 
     useEffect(() => {
-        // Simple reconnect logic could be added here
-        ws.current = new WebSocket(WS_URL);
+        if (!token) return;
 
-        ws.current.onopen = () => {
-            console.log('WebSocket connected');
-        };
+        const client = new Client({
+            brokerURL: WS_URL,
+            connectHeaders: {
+                Authorization: `Bearer ${token}`,
+            },
+            reconnectDelay: 5000,
+            heartbeatIncoming: 4000,
+            heartbeatOutgoing: 4000,
+            onConnect: () => {
+                console.log('STOMP: Connected');
+                client.subscribe(DESTINATION, (message) => {
+                    try {
+                        const payload = JSON.parse(message.body);
+                        // Assuming the payload structure corresponds to what we expect. 
+                        // The previous code had a 'type' field enveloping the payload. 
+                        // With STOMP, normally the message body IS the payload, 
+                        // or we might look at headers for 'type'.
+                        // BUT, let's assume the backend sends the same JSON structure as before:
+                        // { type: 'EXECUTION_STARTED', payload: { ... } }
 
-        ws.current.onmessage = (event) => {
-            try {
-                const message = JSON.parse(event.data);
-                const { type, payload } = message;
+                        const { type, payload: msgPayload } = payload;
 
-                switch (type) {
-                    case 'EXECUTION_STARTED':
-                        // Payload should be the new execution object
-                        dispatch(addExecution({
-                            workflowId: payload.workflowId,
-                            execution: payload
-                        }));
-                        // Also update workflow status if needed
-                        dispatch(updateWorkflow({
-                            id: payload.workflowId,
-                            lastRunStatus: 'running'
-                        }));
-                        break;
+                        switch (type) {
+                            case 'EXECUTION_STARTED':
+                                dispatch(addExecution({
+                                    workflowId: msgPayload.workflowId,
+                                    execution: msgPayload
+                                }));
+                                dispatch(updateWorkflow({
+                                    id: msgPayload.workflowId,
+                                    lastRunStatus: 'running'
+                                }));
+                                break;
 
-                    case 'EXECUTION_UPDATED':
-                        // Payload should look like { workflowId, executionId, updates: { ... } }
-                        dispatch(updateExecution({
-                            workflowId: payload.workflowId,
-                            executionId: payload.executionId,
-                            updates: payload.updates
-                        }));
-                        if (payload.updates.status) {
-                            // E.g. Update workflow last status if execution finished
-                            // This simplistic logic assumes the updated execution is the latest one
-                            let wfStatus: any = 'pending';
-                            if (payload.updates.status === 'done') wfStatus = 'success';
-                            else if (payload.updates.status === 'error') wfStatus = 'failed';
-                            else if (payload.updates.status === 'inprogress') wfStatus = 'running';
+                            case 'EXECUTION_UPDATED':
+                                dispatch(updateExecution({
+                                    workflowId: msgPayload.workflowId,
+                                    executionId: msgPayload.executionId,
+                                    updates: msgPayload.updates
+                                }));
 
-                            dispatch(updateWorkflow({
-                                id: payload.workflowId,
-                                lastRunStatus: wfStatus
-                            }));
+                                if (msgPayload.updates.status) {
+                                    let wfStatus: any = 'pending';
+                                    if (msgPayload.updates.status === 'done') wfStatus = 'success';
+                                    else if (msgPayload.updates.status === 'error') wfStatus = 'failed';
+                                    else if (msgPayload.updates.status === 'inprogress') wfStatus = 'running';
+
+                                    dispatch(updateWorkflow({
+                                        id: msgPayload.workflowId,
+                                        lastRunStatus: wfStatus
+                                    }));
+                                }
+                                break;
+
+                            default:
+                                break;
                         }
-                        break;
-
-                    // Add other cases like LOG_EMITTED here
-
-                    default:
-                        // console.log('Unhandled WS message type:', type);
-                        break;
-                }
-            } catch (err) {
-                console.error('Error parsing WS message:', err);
+                    } catch (err) {
+                        console.error('Error parsing STOMP message:', err);
+                    }
+                });
+            },
+            onStompError: (frame) => {
+                console.error('Broker reported error: ' + frame.headers['message']);
+                console.error('Additional details: ' + frame.body);
+            },
+            onWebSocketClose: () => {
+                console.log('STOMP: WebSocket Closed');
             }
-        };
+        });
 
-        ws.current.onclose = () => {
-            console.log('WebSocket disconnected');
-        };
+        client.activate();
+        clientRef.current = client;
 
         return () => {
-            ws.current?.close();
+            if (clientRef.current) {
+                clientRef.current.deactivate();
+            }
         };
-    }, [dispatch]);
+    }, [dispatch, token]);
 };
