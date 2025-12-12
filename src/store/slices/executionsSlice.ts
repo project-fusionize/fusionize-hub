@@ -8,6 +8,7 @@ export interface Execution {
     lastUpdate: string;
     duration?: string;
     workflowExecutionId: string;
+    nodes: any[];
 }
 
 interface ExecutionsState {
@@ -38,7 +39,8 @@ export const fetchExecutions = createAsyncThunk(
                 workflowExecutionId: exec.workflowExecutionId,
                 status: status,
                 lastUpdate: 'Recently',
-                duration: '-'
+                duration: '-',
+                nodes: exec.nodes
             };
         });
 

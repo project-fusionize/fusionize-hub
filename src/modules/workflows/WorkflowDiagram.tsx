@@ -8,7 +8,11 @@ import {
   useEdgesState,
   MarkerType,
   ReactFlow,
+  Position,
 } from '@xyflow/react';
+import dagre from 'dagre';
+import type { Workflow } from '../../store/slices/workflowsSlice';
+import type { Execution } from '../../store/slices/executionsSlice';
 import '@xyflow/react/dist/style.css';
 import { CustomNode } from './CustomNode';
 import { useTheme } from '@/components/ui/theme-provider';
@@ -21,9 +25,11 @@ interface WorkflowDiagramProps {
   onNodeSelect: (node: any) => void;
   selectedNodeId?: string;
   executionId?: string;
+  workflow?: Workflow;
+  execution?: Execution;
 }
 
-export function WorkflowDiagram({ onNodeSelect, selectedNodeId, executionId }: WorkflowDiagramProps) {
+export function WorkflowDiagram({ onNodeSelect, selectedNodeId, executionId, workflow, execution }: WorkflowDiagramProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { theme } = useTheme();
@@ -40,185 +46,126 @@ export function WorkflowDiagram({ onNodeSelect, selectedNodeId, executionId }: W
     }
   }, [theme]);
 
+  const getLayoutedElements = useCallback((nodes: Node[], edges: Edge[]) => {
+    const dagreGraph = new dagre.graphlib.Graph();
+    dagreGraph.setDefaultEdgeLabel(() => ({}));
+
+    const nodeWidth = 250;
+    const nodeHeight = 120;
+
+    dagreGraph.setGraph({ rankdir: 'TB' });
+
+    nodes.forEach((node) => {
+      dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+    });
+
+    edges.forEach((edge) => {
+      dagreGraph.setEdge(edge.source, edge.target);
+    });
+
+    dagre.layout(dagreGraph);
+
+    const layoutedNodes = nodes.map((node) => {
+      const nodeWithPosition = dagreGraph.node(node.id);
+      return {
+        ...node,
+        targetPosition: Position.Top,
+        sourcePosition: Position.Bottom,
+        position: {
+          x: nodeWithPosition.x - nodeWidth / 2,
+          y: nodeWithPosition.y - nodeHeight / 2,
+        },
+      };
+    });
+
+    return { nodes: layoutedNodes, edges };
+  }, []);
+
   useEffect(() => {
-    if (!executionId) {
+    if (!workflow || !workflow.nodeMap) {
       setNodes([]);
       setEdges([]);
       return;
     }
 
-    // Mock workflow data - represents a loan processing workflow
-    const initialNodes: Node[] = [
-      {
-        id: '1',
-        type: 'custom',
-        position: { x: 250, y: 50 },
-        data: {
-          label: 'Start Application',
-          nodeKey: 'startApplication',
-          nodeType: 'start',
-          status: 'success',
-          description: 'Start of the workflow',
-        },
-      },
-      {
-        id: '2',
-        type: 'custom',
-        position: { x: 250, y: 150 },
-        data: {
-          label: 'Verify Identity',
-          nodeKey: 'verifyIdentity',
-          nodeType: 'ai',
-          status: 'success',
-          description: 'AI-powered identity verification',
-        },
-      },
-      {
-        id: '3',
-        type: 'custom',
-        position: { x: 250, y: 250 },
-        data: {
-          label: 'Document Extraction',
-          nodeKey: 'documentExtraction',
-          nodeType: 'tool',
-          status: 'success',
-          description: 'Extract data from uploaded documents',
-        },
-      },
-      {
-        id: '4',
-        type: 'custom',
-        position: { x: 250, y: 350 },
-        data: {
-          label: 'Credit Score API',
-          nodeKey: 'creditScoreApi',
-          nodeType: 'api',
-          status: 'success',
-          description: 'Fetch credit score from bureau',
-        },
-      },
-      {
-        id: '5',
-        type: 'custom',
-        position: { x: 250, y: 450 },
-        data: {
-          label: 'Risk Assessment',
-          nodeKey: 'riskAssessment',
-          nodeType: 'decision',
-          status: 'running',
-          description: 'Evaluate loan risk',
-        },
-      },
-      {
-        id: '6',
-        type: 'custom',
-        position: { x: 100, y: 570 },
-        data: {
-          label: 'Approve Loan',
-          nodeKey: 'approveLoan',
-          nodeType: 'tool',
-          status: 'pending',
-          description: 'Auto-approve eligible loans',
-        },
-      },
-      {
-        id: '7',
-        type: 'custom',
-        position: { x: 400, y: 570 },
-        data: {
-          label: 'Manual Review',
-          nodeKey: 'manualReview',
-          nodeType: 'tool',
-          status: 'pending',
-          description: 'Route to human review',
-        },
-      },
-      {
-        id: '8',
-        type: 'custom',
-        position: { x: 250, y: 690 },
-        data: {
-          label: 'Send Notification',
-          nodeKey: 'sendNotification',
-          nodeType: 'api',
-          status: 'pending',
-          description: 'Notify customer of decision',
-        },
-      },
-    ];
+    // Helper to find status recursively (if needed) or from flat list if we flattened it
+    // But execution data is nested.
+    // Let's create a map of statuses for easier lookup
+    const statusMap = new Map<string, string>();
 
-    const initialEdges: Edge[] = [
-      {
-        id: 'e1-2',
-        source: '1',
-        target: '2',
-        type: 'smoothstep',
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#10b981', strokeWidth: 2 },
-      },
-      {
-        id: 'e2-3',
-        source: '2',
-        target: '3',
-        type: 'smoothstep',
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#10b981', strokeWidth: 2 },
-      },
-      {
-        id: 'e3-4',
-        source: '3',
-        target: '4',
-        type: 'smoothstep',
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#10b981', strokeWidth: 2 },
-      },
-      {
-        id: 'e4-5',
-        source: '4',
-        target: '5',
-        type: 'smoothstep',
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#10b981', strokeWidth: 2 },
-      },
-      {
-        id: 'e5-6',
-        source: '5',
-        target: '6',
-        type: 'smoothstep',
-        label: 'Low Risk',
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#eab308', strokeWidth: 2 },
-      },
-      {
-        id: 'e5-7',
-        source: '5',
-        target: '7',
-        type: 'smoothstep',
-        label: 'High Risk',
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#eab308', strokeWidth: 2 },
-      },
-      {
-        id: 'e6-8',
-        source: '6',
-        target: '8',
-        type: 'smoothstep',
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#9ca3af', strokeWidth: 2 },
-      },
-      {
-        id: 'e7-8',
-        source: '7',
-        target: '8',
-        type: 'smoothstep',
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#9ca3af', strokeWidth: 2 },
-      },
-    ];
+    if (execution && execution.nodes) {
+      const traverse = (nodes: any[]) => {
+        nodes.forEach(node => {
+          if (node.workflowNodeId) {
+            statusMap.set(node.workflowNodeId, node.state?.toLowerCase() || 'pending');
+          }
+          if (node.children) {
+            traverse(node.children);
+          }
+        });
+      };
+      traverse(execution.nodes);
+    }
 
-    setNodes(initialNodes);
-    setEdges(initialEdges);
-  }, [setNodes, setEdges, executionId]);
+
+    const newNodes: Node[] = [];
+    const newEdges: Edge[] = [];
+
+    // Build nodes from workflow definition
+    Object.values(workflow.nodeMap).forEach((node) => {
+      let nodeType = 'custom'; // Default to custom node
+      // You might map component types to specific node types if needed
+
+      let status = 'pending';
+      if (executionId && execution) {
+        status = statusMap.get(node.workflowNodeId) || 'pending';
+        if (status === 'success') status = 'success'; // Verify mapping match
+        // Map 'DONE' to 'success', etc.
+        if (status === 'done') status = 'success';
+        if (status === 'running') status = 'running';
+        if (status === 'failed') status = 'failed';
+      }
+
+      let uiNodeType = 'tool';
+      const apiType = node.type.toUpperCase();
+      if (apiType === 'START') uiNodeType = 'start';
+      else if (apiType === 'END') uiNodeType = 'decision'; // Or add 'end' type to CustomNode
+      else if (apiType === 'TASK') uiNodeType = 'tool';
+      else if (node.component.includes('AI')) uiNodeType = 'ai';
+
+      newNodes.push({
+        id: node.workflowNodeId,
+        type: nodeType,
+        position: { x: 0, y: 0 }, // Initial position, will be layouted
+        data: {
+          label: node.workflowNodeKey, // Or fetch label from config if available
+          nodeKey: node.workflowNodeKey,
+          nodeType: uiNodeType,
+          status: status,
+          description: node.component, // Or description from somewhere
+        }
+      });
+
+      // Build edges
+      if (node.childrenIds) {
+        node.childrenIds.forEach(childId => {
+          newEdges.push({
+            id: `e-${node.workflowNodeId}-${childId}`,
+            source: node.workflowNodeId,
+            target: childId,
+            type: 'smoothstep',
+            markerEnd: { type: MarkerType.ArrowClosed },
+            style: { stroke: '#9ca3af', strokeWidth: 2 }, // Default style
+          });
+        });
+      }
+    });
+
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(newNodes, newEdges);
+    setNodes(layoutedNodes);
+    setEdges(layoutedEdges);
+
+  }, [workflow, execution, executionId, getLayoutedElements, setNodes, setEdges]);
 
   const onNodeClick = useCallback(
     (_: any, node: Node) => {

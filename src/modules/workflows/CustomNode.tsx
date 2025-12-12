@@ -51,8 +51,8 @@ export function CustomNode({ data }: { data: CustomNodeData }) {
     },
   };
 
-  const nodeConfig = nodeTypeConfig[data.nodeType];
-  const statusInfo = statusConfig[data.status];
+  const nodeConfig = nodeTypeConfig[data.nodeType] || nodeTypeConfig['tool'];
+  const statusInfo = statusConfig[data.status] || statusConfig['pending'];
   const NodeIcon = nodeConfig.icon;
   const StatusIcon = statusInfo.icon;
 

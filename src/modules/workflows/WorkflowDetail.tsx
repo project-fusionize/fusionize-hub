@@ -6,7 +6,9 @@ import { WorkflowExecutionsList } from './WorkflowExecutionsList';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useWorkflows } from '../../hooks/useWorkflows';
+import { useWorkflowExecutions } from '../../hooks/useWorkflowExecutions';
 import type { Execution } from '../../hooks/useWorkflowExecutions';
+import { useMemo } from 'react';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -34,6 +36,11 @@ export function WorkflowDetail({ workflowId: _workflowId, executionId, onBack }:
   const [isExecutionsListOpen, setIsExecutionsListOpen] = useState(true);
   const { workflows } = useWorkflows();
   const navigate = useNavigate();
+  const { executions } = useWorkflowExecutions(_workflowId);
+  const selectedExecution = useMemo(() =>
+    executions.find((e: Execution) => e.id === executionId),
+    [executions, executionId]
+  );
 
   const handleExecutionSelect = (execution: Execution) => {
     navigate(`/workflows/${_workflowId}/${execution.id}`);
@@ -111,6 +118,8 @@ export function WorkflowDetail({ workflowId: _workflowId, executionId, onBack }:
           </Button>
 
           <WorkflowDiagram
+            workflow={workflow}
+            execution={selectedExecution}
             onNodeSelect={setSelectedNode}
             selectedNodeId={selectedNode?.id}
             executionId={executionId}
