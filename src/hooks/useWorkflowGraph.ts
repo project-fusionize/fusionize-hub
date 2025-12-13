@@ -142,7 +142,7 @@ export const useWorkflowGraph = (
 
                 if (rawStatus === 'success' || rawStatus === 'done') status = 'done';
                 else if (rawStatus === 'idle') status = 'idle';
-                else if (rawStatus === 'running') status = 'working';
+                else if (rawStatus === 'working') status = 'working';
                 else if (rawStatus === 'failed') status = 'failed';
                 else if (rawStatus === 'waiting' || rawStatus === 'wait') status = 'waiting';
                 else status = 'pending';
