@@ -1,22 +1,20 @@
 import { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { Client } from '@stomp/stompjs';
-import { addExecution, updateExecution } from '../store/slices/executionsSlice';
+import { upsertExecution, type Execution } from '../store/slices/executionsSlice';
 import { updateWorkflow } from '../store/slices/workflowsSlice';
 import { useAuth } from '../auth/AuthContext';
+import type { ApiWorkflowExecution } from '../services/workflowService';
 
-// Placeholder for WebSocket URL - in a real app this would come from env or config
 const WS_URL = 'ws://localhost:8081/ws/1.0';
-// Assumed STOMP destination
-const DESTINATION = '/topic/executions';
 
-export const useWebSocketSubscription = () => {
+export const useWebSocketSubscription = (workflowId: string | undefined) => {
     const dispatch = useDispatch();
     const clientRef = useRef<Client | null>(null);
     const { token } = useAuth();
 
     useEffect(() => {
-        if (!token) return;
+        if (!token || !workflowId) return;
 
         const client = new Client({
             brokerURL: WS_URL,
@@ -27,54 +25,42 @@ export const useWebSocketSubscription = () => {
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
             onConnect: () => {
-                console.log('STOMP: Connected');
-                client.subscribe(DESTINATION, (message) => {
+                console.log(`STOMP: Connected to workflow ${workflowId}`);
+                client.subscribe(`/topic/1.0.workflow-executions.${workflowId}`, (message) => {
                     try {
-                        const payload = JSON.parse(message.body);
-                        // Assuming the payload structure corresponds to what we expect. 
-                        // The previous code had a 'type' field enveloping the payload. 
-                        // With STOMP, normally the message body IS the payload, 
-                        // or we might look at headers for 'type'.
-                        // BUT, let's assume the backend sends the same JSON structure as before:
-                        // { type: 'EXECUTION_STARTED', payload: { ... } }
+                        const payload: ApiWorkflowExecution = JSON.parse(message.body);
 
-                        const { type, payload: msgPayload } = payload;
+                        // Map ApiWorkflowExecution to Execution
+                        let status: Execution['status'] = 'idle';
+                        if (payload.status === 'SUCCESS') status = 'done';
+                        else if (payload.status === 'ERROR') status = 'error';
+                        else if (payload.status === 'IN_PROGRESS') status = 'inprogress';
 
-                        switch (type) {
-                            case 'EXECUTION_STARTED':
-                                dispatch(addExecution({
-                                    workflowId: msgPayload.workflowId,
-                                    execution: msgPayload
-                                }));
-                                dispatch(updateWorkflow({
-                                    id: msgPayload.workflowId,
-                                    lastRunStatus: 'running'
-                                }));
-                                break;
+                        const execution: Execution = {
+                            id: payload.workflowExecutionId,
+                            workflowExecutionId: payload.workflowExecutionId,
+                            status: status,
+                            lastUpdate: 'Recently', // You might want to get this from payload if available
+                            duration: '-', // Calculate if timestamps are available
+                            nodes: payload.nodes
+                        };
 
-                            case 'EXECUTION_UPDATED':
-                                dispatch(updateExecution({
-                                    workflowId: msgPayload.workflowId,
-                                    executionId: msgPayload.executionId,
-                                    updates: msgPayload.updates
-                                }));
+                        dispatch(upsertExecution({
+                            workflowId: payload.workflowId,
+                            execution: execution
+                        }));
 
-                                if (msgPayload.updates.status) {
-                                    let wfStatus: any = 'pending';
-                                    if (msgPayload.updates.status === 'done') wfStatus = 'success';
-                                    else if (msgPayload.updates.status === 'error') wfStatus = 'failed';
-                                    else if (msgPayload.updates.status === 'inprogress') wfStatus = 'running';
+                        // Update workflow last run status
+                        let wfStatus: 'success' | 'failed' | 'running' | 'pending' = 'pending';
+                        if (status === 'done') wfStatus = 'success';
+                        else if (status === 'error') wfStatus = 'failed';
+                        else if (status === 'inprogress') wfStatus = 'running';
 
-                                    dispatch(updateWorkflow({
-                                        id: msgPayload.workflowId,
-                                        lastRunStatus: wfStatus
-                                    }));
-                                }
-                                break;
+                        dispatch(updateWorkflow({
+                            id: payload.workflowId,
+                            lastRunStatus: wfStatus
+                        }));
 
-                            default:
-                                break;
-                        }
                     } catch (err) {
                         console.error('Error parsing STOMP message:', err);
                     }
@@ -95,7 +81,8 @@ export const useWebSocketSubscription = () => {
         return () => {
             if (clientRef.current) {
                 clientRef.current.deactivate();
+                console.log(`STOMP: Disconnected from workflow ${workflowId}`);
             }
         };
-    }, [dispatch, token]);
+    }, [dispatch, token, workflowId]);
 };

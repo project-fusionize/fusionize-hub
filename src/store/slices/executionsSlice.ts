@@ -70,6 +70,22 @@ const executionsSlice = createSlice({
                 }
             }
         },
+        upsertExecution: (state, action: PayloadAction<{ workflowId: string; execution: Execution }>) => {
+            const { workflowId, execution } = action.payload;
+            if (!state.byWorkflowId[workflowId]) {
+                state.byWorkflowId[workflowId] = [];
+            }
+            const list = state.byWorkflowId[workflowId];
+            const existingIndex = list.findIndex(e => e.id === execution.id || e.workflowExecutionId === execution.workflowExecutionId);
+
+            if (existingIndex !== -1) {
+                // Update existing
+                list[existingIndex] = { ...list[existingIndex], ...execution };
+            } else {
+                // Add new to start
+                list.unshift(execution);
+            }
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -91,5 +107,5 @@ const executionsSlice = createSlice({
     },
 });
 
-export const { addExecution, updateExecution } = executionsSlice.actions;
+export const { addExecution, updateExecution, upsertExecution } = executionsSlice.actions;
 export default executionsSlice.reducer;

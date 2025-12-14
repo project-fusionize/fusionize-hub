@@ -22,11 +22,11 @@ function WorkflowsRoute() {
 function WorkflowDetailRoute() {
   const { id, executionId } = useParams();
   const navigate = useNavigate();
+  useWebSocketSubscription(id);
   return <WorkflowDetail workflowId={id || ''} executionId={executionId} onBack={() => navigate('/workflows')} />;
 }
 
 function App() {
-  useWebSocketSubscription();
   return (
     <BrowserRouter>
       <SidebarProvider>
