@@ -20,7 +20,7 @@ export function CustomNode({ data }: { data: NodeData }) {
             <NodeIcon className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="truncate font-medium">
+            <div className={`truncate font-medium ${data.status === 'waiting' ? 'animate-pulse' : ''}`}>
               {data.status === 'working' ? (
                 <ShimmeringText
                   text={data.label}
@@ -35,7 +35,7 @@ export function CustomNode({ data }: { data: NodeData }) {
             <div className="truncate text-[10px] text-muted-foreground font-mono mt-0.5">{data.nodeKey}</div>
           </div>
           <div className={`w-6 h-6 ${statusInfo.bg} rounded-full flex items-center justify-center`}>
-            <StatusIcon className={`w-3.5 h-3.5 ${statusInfo.color} ${data.status === 'working' ? 'animate-spin' : data.status === 'idle' ? 'animate-ping' : ''}`} />
+            <StatusIcon className={`w-3.5 h-3.5 ${statusInfo.color} ${data.status === 'working' ? 'animate-spin' : data.status === 'idle' ? 'animate-ping' : data.status === 'waiting' ? 'animate-pulse' : ''}`} />
           </div>
         </div>
 

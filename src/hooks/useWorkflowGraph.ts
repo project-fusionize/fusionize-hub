@@ -24,6 +24,115 @@ export interface NodeData extends Record<string, unknown> {
     selected?: boolean;
 }
 
+// --- Helper Functions ---
+
+const resolveNodeStatus = (rawStatus: string | undefined): NodeData['status'] => {
+    if (!rawStatus) return 'pending';
+    switch (rawStatus.toLowerCase()) {
+        case 'success':
+        case 'done':
+            return 'done';
+        case 'working':
+            return 'working';
+        case 'waiting':
+        case 'wait':
+            return 'waiting';
+        case 'failed':
+            return 'failed';
+        case 'idle':
+            return 'idle';
+        default:
+            return 'pending';
+    }
+};
+
+const determineUiNodeType = (apiType: string, component: string | undefined): NodeData['nodeType'] => {
+    let uiNodeType: string = 'task';
+    const type = apiType.toUpperCase();
+
+    // Helper to determine subtype
+    const getSubtype = (base: string, comp: string | undefined): string => {
+        if (!comp) return base.toLowerCase();
+        const lowerComp = comp.toLowerCase();
+        if (lowerComp.startsWith('ai:') || lowerComp.startsWith('ai_')) return `ai-${base.toLowerCase()}`;
+        if (lowerComp.startsWith('system:') || lowerComp.startsWith('sys:') || lowerComp.startsWith('system_')) return `sys-${base.toLowerCase()}`;
+        if (lowerComp.startsWith('human:') || lowerComp.startsWith('human_')) return `human-${base.toLowerCase()}`;
+        return base.toLowerCase();
+    };
+
+    if (type === 'START') uiNodeType = 'start';
+    else if (type === 'END') uiNodeType = 'end';
+    else if (type === 'TASK') uiNodeType = getSubtype('task', component);
+    else if (type === 'DECISION') uiNodeType = getSubtype('decision', component);
+    else if (type === 'WAIT') uiNodeType = getSubtype('wait', component);
+    else if (component && component.toLowerCase().includes('ai')) uiNodeType = 'ai-task';
+
+    // Validation
+    const validTypes = [
+        'start', 'end', 'ai-task', 'human-task', 'sys-task', 'task',
+        'human-decision', 'sys-decision', 'ai-decision', 'decision',
+        'human-wait', 'sys-wait', 'ai-wait', 'wait'
+    ];
+
+    return validTypes.includes(uiNodeType) ? (uiNodeType as NodeData['nodeType']) : 'task';
+};
+
+const getEdgeStyle = (sourceStatus: string, targetStatus: string) => {
+    let color = '#9ca3af'; // pending/muted (gray-400)
+    let strokeWidth = 1;
+
+    // Resolve normalize statuses first to ensure we compare correctly
+    const sStatus = resolveNodeStatus(sourceStatus);
+    const tStatus = resolveNodeStatus(targetStatus);
+
+    if (sStatus === 'done') {
+        if (tStatus === 'done') {
+            color = '#16a34a'; // green-600
+            strokeWidth = 2;
+        } else if (tStatus === 'working') {
+            color = '#ca8a04'; // yellow-600
+            strokeWidth = 2;
+        } else if (tStatus === 'waiting') {
+            color = '#2563eb'; // blue-600
+            strokeWidth = 2;
+        } else if (tStatus === 'failed') {
+            color = '#dc2626'; // red-600
+            strokeWidth = 2;
+        }
+    }
+
+    return { color, strokeWidth };
+};
+
+const processExecutionData = (execution: Execution | undefined) => {
+    const statusMap = new Map<string, string>();
+    const contextMap = new Map<string, any>();
+
+    if (execution && execution.nodes) {
+        const latestNodeExecutions = new Map<string, any>();
+
+        const traverse = (nodes: any[]) => {
+            nodes.forEach(node => {
+                if (node.workflowNodeId) {
+                    const existing = latestNodeExecutions.get(node.workflowNodeId);
+                    if (!existing || (node.updatedDate && existing.updatedDate && new Date(node.updatedDate) > new Date(existing.updatedDate))) {
+                        latestNodeExecutions.set(node.workflowNodeId, node);
+                    }
+                }
+                if (node.children) traverse(node.children);
+            });
+        };
+        traverse(execution.nodes);
+
+        latestNodeExecutions.forEach((node, nodeId) => {
+            statusMap.set(nodeId, node.state?.toLowerCase() || 'pending');
+            if (node.stageContext) contextMap.set(nodeId, node.stageContext);
+        });
+    }
+    return { statusMap, contextMap };
+};
+
+
 export const useWorkflowGraph = (
     workflow: Workflow | undefined,
     execution: Execution | undefined,
@@ -35,20 +144,12 @@ export const useWorkflowGraph = (
     const getLayoutedElements = useCallback((nodes: Node<NodeData>[], edges: Edge[]) => {
         const dagreGraph = new dagre.graphlib.Graph();
         dagreGraph.setDefaultEdgeLabel(() => ({}));
-
-        // Adjusted node dimensions for better layout
         const nodeWidth = 250;
         const nodeHeight = 120;
-
         dagreGraph.setGraph({ rankdir: 'TB' });
 
-        nodes.forEach((node) => {
-            dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
-        });
-
-        edges.forEach((edge) => {
-            dagreGraph.setEdge(edge.source, edge.target);
-        });
+        nodes.forEach((node) => dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight }));
+        edges.forEach((edge) => dagreGraph.setEdge(edge.source, edge.target));
 
         dagre.layout(dagreGraph);
 
@@ -75,111 +176,41 @@ export const useWorkflowGraph = (
             return;
         }
 
-        const statusMap = new Map<string, string>();
-        const contextMap = new Map<string, any>();
-
-        if (execution && execution.nodes) {
-            const traverse = (nodes: any[]) => {
-                nodes.forEach(node => {
-                    if (node.workflowNodeId) {
-                        statusMap.set(node.workflowNodeId, node.state?.toLowerCase() || 'pending');
-                        if (node.stageContext) {
-                            contextMap.set(node.workflowNodeId, node.stageContext);
-                        }
-                    }
-                    if (node.children) {
-                        traverse(node.children);
-                    }
-                });
-            };
-            traverse(execution.nodes);
-        }
+        const { statusMap, contextMap } = processExecutionData(execution);
 
         const newNodes: Node<NodeData>[] = [];
         const newEdges: Edge[] = [];
         const parentMap = new Map<string, string>();
 
-        // Build parent map first
-        if (workflow?.nodeMap) {
-            Object.values(workflow.nodeMap).forEach((node) => {
-                if (node.childrenIds) {
-                    node.childrenIds.forEach(childId => {
-                        parentMap.set(childId, node.workflowNodeId);
-                    });
-                }
-            });
-        }
-
-        const defaultRootContext = {
-            data: {},
-            resources: {},
-            decisions: [],
-            graphNodes: [],
-            runtimeData: null
-        };
-
-        // Build nodes from workflow definition
+        // Build parent map
         Object.values(workflow.nodeMap).forEach((node) => {
-            let nodeType = 'custom';
+            if (node.childrenIds) {
+                node.childrenIds.forEach(childId => parentMap.set(childId, node.workflowNodeId));
+            }
+        });
 
+        const defaultRootContext = { data: {}, resources: {}, decisions: [], graphNodes: [], runtimeData: null };
+
+        // Build nodes and edges
+        Object.values(workflow.nodeMap).forEach((node) => {
             let status: NodeData['status'] = 'pending';
             let stageContext = undefined;
             let inputContext = undefined;
 
             if (executionId && execution) {
-                const rawStatus = statusMap.get(node.workflowNodeId) || 'pending';
+                const rawStatus = statusMap.get(node.workflowNodeId);
+                status = resolveNodeStatus(rawStatus);
                 stageContext = contextMap.get(node.workflowNodeId);
 
-                // Determine input context
                 const parentId = parentMap.get(node.workflowNodeId);
-                if (!parentId) {
-                    // Root node
-                    inputContext = defaultRootContext;
-                } else {
-                    // Child node - use parent's context
-                    inputContext = contextMap.get(parentId);
-                }
-
-                if (rawStatus === 'success' || rawStatus === 'done') status = 'done';
-                else if (rawStatus === 'idle') status = 'idle';
-                else if (rawStatus === 'working') status = 'working';
-                else if (rawStatus === 'failed') status = 'failed';
-                else if (rawStatus === 'waiting' || rawStatus === 'wait') status = 'waiting';
-                else status = 'pending';
+                inputContext = parentId ? contextMap.get(parentId) : defaultRootContext;
             }
 
-            let uiNodeType: NodeData['nodeType'] = 'task';
-            const apiType = node.type.toUpperCase();
-
-            // Helper to determine subtype based on component prefix
-            const getSubtype = (base: string, component: string | undefined): any => {
-                if (!component) return base.toLowerCase();
-                const lowerComp = component.toLowerCase();
-                if (lowerComp.startsWith('ai:') || lowerComp.startsWith('ai_')) return `ai-${base.toLowerCase()}`;
-                if (lowerComp.startsWith('system:') || lowerComp.startsWith('sys:') || lowerComp.startsWith('system_')) return `sys-${base.toLowerCase()}`;
-                if (lowerComp.startsWith('human:') || lowerComp.startsWith('human_')) return `human-${base.toLowerCase()}`;
-                return base.toLowerCase();
-            };
-
-            if (apiType === 'START') uiNodeType = 'start';
-            else if (apiType === 'END') uiNodeType = 'end';
-            else if (apiType === 'TASK') uiNodeType = getSubtype('task', node.component);
-            else if (apiType === 'DECISION') uiNodeType = getSubtype('decision', node.component);
-            else if (apiType === 'WAIT') uiNodeType = getSubtype('wait', node.component);
-            else if (node.component && node.component.toLowerCase().includes('ai')) uiNodeType = 'ai-task'; // Fallback for old logic if needed, or remove
-
-            // Ensure uiNodeType is valid, fallback to 'task' if unsure (though logic above should cover it)
-            // The type definition is strict, so we should ensure we match one of them.
-            // Simplified fallback:
-            if (!['start', 'end', 'ai-task', 'human-task', 'sys-task', 'task',
-                'human-decision', 'sys-decision', 'ai-decision', 'decision',
-                'human-wait', 'sys-wait', 'ai-wait', 'wait'].includes(uiNodeType)) {
-                uiNodeType = 'task';
-            }
+            const uiNodeType = determineUiNodeType(node.type, node.component);
 
             newNodes.push({
                 id: node.workflowNodeId,
-                type: nodeType,
+                type: 'custom',
                 position: { x: 0, y: 0 },
                 data: {
                     label: node.workflowNodeKey,
@@ -194,13 +225,21 @@ export const useWorkflowGraph = (
 
             if (node.childrenIds) {
                 node.childrenIds.forEach(childId => {
+                    let edgeStyle = { color: '#9ca3af', strokeWidth: 1 };
+
+                    if (executionId && execution) {
+                        const targetStatus = statusMap.get(childId) || 'pending';
+                        const sourceStatus = statusMap.get(node.workflowNodeId) || 'pending';
+                        edgeStyle = getEdgeStyle(sourceStatus, targetStatus);
+                    }
+
                     newEdges.push({
                         id: `e-${node.workflowNodeId}-${childId}`,
                         source: node.workflowNodeId,
                         target: childId,
                         type: 'smoothstep',
-                        markerEnd: { type: MarkerType.ArrowClosed },
-                        style: { stroke: '#9ca3af', strokeWidth: 2 },
+                        markerEnd: { type: MarkerType.ArrowClosed, color: edgeStyle.color },
+                        style: { stroke: edgeStyle.color, strokeWidth: edgeStyle.strokeWidth },
                     });
                 });
             }
@@ -215,7 +254,7 @@ export const useWorkflowGraph = (
     return {
         nodes,
         edges,
-        setNodes, // Exporting setNodes to allow external updates (e.g. selection)
+        setNodes,
         setEdges,
         onNodesChange,
         onEdgesChange

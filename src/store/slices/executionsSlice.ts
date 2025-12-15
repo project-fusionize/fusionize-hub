@@ -6,6 +6,7 @@ export interface Execution {
     id: string;
     status: 'idle' | 'inprogress' | 'done' | 'error';
     lastUpdate: string;
+    updatedDate: string;
     duration?: string;
     workflowExecutionId: string;
     nodes: any[];
@@ -25,6 +26,33 @@ const initialState: ExecutionsState = {
     newlyAddedExecutionId: null,
 };
 
+function formatTimeAgo(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (seconds < 60) return 'Just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+}
+
+function calculateDuration(start: string, end: string): string {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const durationMs = endDate.getTime() - startDate.getTime();
+
+    if (durationMs < 1000) return `${durationMs}ms`;
+    const seconds = Math.floor(durationMs / 1000);
+    if (seconds < 60) return `${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}m ${remainingSeconds}s`;
+}
+
 export const fetchExecutions = createAsyncThunk(
     'executions/fetchExecutions',
     async ({ token, workflowId }: { token: string; workflowId: string }) => {
@@ -40,8 +68,11 @@ export const fetchExecutions = createAsyncThunk(
                 id: exec.workflowExecutionId,
                 workflowExecutionId: exec.workflowExecutionId,
                 status: status,
-                lastUpdate: 'Recently',
-                duration: '-',
+                lastUpdate: formatTimeAgo(exec.updatedDate),
+                updatedDate: exec.updatedDate,
+                duration: exec.status === 'IN_PROGRESS' || exec.status === 'IDLE'
+                    ? '-'
+                    : calculateDuration(exec.createdDate, exec.updatedDate),
                 nodes: exec.nodes
             };
         });

@@ -53,7 +53,9 @@ export function WorkflowExecutionsList({
     }
 
     const idleExecution = executions.find(e => e.status === 'idle');
-    const pastExecutions = executions.filter(e => e.status !== 'idle');
+    const pastExecutions = executions
+        .filter(e => e.status !== 'idle')
+        .sort((a, b) => new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime());
 
     return (
         <div className="flex flex-col h-full bg-background border-r border-border">

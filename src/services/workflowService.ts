@@ -32,12 +32,23 @@ export interface WorkflowApiResponse {
     };
 }
 
+export interface ApiWorkflowExecutionNode {
+    workflowNodeId: string;
+    state: string;
+    stageContext: any;
+    createdDate: string;
+    updatedDate: string;
+    children: ApiWorkflowExecutionNode[];
+}
+
 export interface ApiWorkflowExecution {
     id: string;
     workflowExecutionId: string;
     workflowId: string;
-    nodes: any[];
+    nodes: ApiWorkflowExecutionNode[];
     status: 'IDLE' | 'IN_PROGRESS' | 'SUCCESS' | 'ERROR' | 'TERMINATED';
+    createdDate: string;
+    updatedDate: string;
 }
 
 export interface WorkflowExecutionsApiResponse {
