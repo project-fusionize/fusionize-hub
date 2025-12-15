@@ -4,6 +4,8 @@ import { workflowService } from '../../services/workflowService';
 
 // Define Workflow type based on what we need in the UI
 // This matches the mapping in useWorkflows.ts
+import type { ApiWorkflowNode } from '../../services/workflowService';
+
 export interface Workflow {
     id: string;
     name: string;
@@ -13,6 +15,8 @@ export interface Workflow {
     lastRunStatus: 'success' | 'running' | 'failed' | 'pending';
     updatedAt: string;
     active: boolean;
+    nodeMap: Record<string, ApiWorkflowNode>;
+    rootNodeIds: string[];
 }
 
 interface WorkflowsState {
@@ -40,7 +44,9 @@ export const fetchWorkflows = createAsyncThunk(
             totalSteps: wf.nodeMap ? Object.keys(wf.nodeMap).length : 0,
             lastRunStatus: 'pending', // Placeholder as per original hook
             updatedAt: new Date().toISOString(), // Placeholder
-            active: wf.active
+            active: wf.active,
+            nodeMap: wf.nodeMap,
+            rootNodeIds: wf.rootNodeIds
         })) as Workflow[];
     }
 );

@@ -1,81 +1,63 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { addExecution, updateExecution } from '../store/slices/executionsSlice';
+import { upsertExecution, type Execution } from '../store/slices/executionsSlice';
 import { updateWorkflow } from '../store/slices/workflowsSlice';
+import { useAuth } from '../auth/AuthContext';
+import type { ApiWorkflowExecution } from '../services/workflowService';
+import { useStomp } from '../services/StompSessionProvider';
 
-// Placeholder for WebSocket URL - in a real app this would come from env or config
-const WS_URL = 'ws://localhost:8081/ws';
-
-export const useWebSocketSubscription = () => {
+export const useWebSocketSubscription = (workflowId: string | undefined) => {
     const dispatch = useDispatch();
-    const ws = useRef<WebSocket | null>(null);
+    const { token } = useAuth();
+    const { client, connected } = useStomp();
 
     useEffect(() => {
-        // Simple reconnect logic could be added here
-        ws.current = new WebSocket(WS_URL);
+        if (!token || !workflowId || !connected || !client) return;
 
-        ws.current.onopen = () => {
-            console.log('WebSocket connected');
-        };
-
-        ws.current.onmessage = (event) => {
+        console.log(`STOMP: Subscribing to workflow ${workflowId}`);
+        const subscription = client.subscribe(`/topic/1.0.workflow-executions.${workflowId}`, (message) => {
             try {
-                const message = JSON.parse(event.data);
-                const { type, payload } = message;
+                const payload: ApiWorkflowExecution = JSON.parse(message.body);
 
-                switch (type) {
-                    case 'EXECUTION_STARTED':
-                        // Payload should be the new execution object
-                        dispatch(addExecution({
-                            workflowId: payload.workflowId,
-                            execution: payload
-                        }));
-                        // Also update workflow status if needed
-                        dispatch(updateWorkflow({
-                            id: payload.workflowId,
-                            lastRunStatus: 'running'
-                        }));
-                        break;
+                // Map ApiWorkflowExecution to Execution
+                let status: Execution['status'] = 'idle';
+                if (payload.status === 'SUCCESS') status = 'done';
+                else if (payload.status === 'ERROR') status = 'error';
+                else if (payload.status === 'IN_PROGRESS') status = 'inprogress';
 
-                    case 'EXECUTION_UPDATED':
-                        // Payload should look like { workflowId, executionId, updates: { ... } }
-                        dispatch(updateExecution({
-                            workflowId: payload.workflowId,
-                            executionId: payload.executionId,
-                            updates: payload.updates
-                        }));
-                        if (payload.updates.status) {
-                            // E.g. Update workflow last status if execution finished
-                            // This simplistic logic assumes the updated execution is the latest one
-                            let wfStatus: any = 'pending';
-                            if (payload.updates.status === 'done') wfStatus = 'success';
-                            else if (payload.updates.status === 'error') wfStatus = 'failed';
-                            else if (payload.updates.status === 'inprogress') wfStatus = 'running';
+                const execution: Execution = {
+                    id: payload.workflowExecutionId,
+                    workflowExecutionId: payload.workflowExecutionId,
+                    status: status,
+                    lastUpdate: 'Recently', // You might want to get this from payload if available
+                    duration: '-', // Calculate if timestamps are available
+                    nodes: payload.nodes
+                };
 
-                            dispatch(updateWorkflow({
-                                id: payload.workflowId,
-                                lastRunStatus: wfStatus
-                            }));
-                        }
-                        break;
+                dispatch(upsertExecution({
+                    workflowId: payload.workflowId,
+                    execution: execution
+                }));
 
-                    // Add other cases like LOG_EMITTED here
+                // Update workflow last run status
+                let wfStatus: 'success' | 'failed' | 'running' | 'pending' = 'pending';
+                if (status === 'done') wfStatus = 'success';
+                else if (status === 'error') wfStatus = 'failed';
+                else if (status === 'inprogress') wfStatus = 'running';
 
-                    default:
-                        // console.log('Unhandled WS message type:', type);
-                        break;
-                }
+                dispatch(updateWorkflow({
+                    id: payload.workflowId,
+                    lastRunStatus: wfStatus
+                }));
+
             } catch (err) {
-                console.error('Error parsing WS message:', err);
+                console.error('Error parsing STOMP message:', err);
             }
-        };
-
-        ws.current.onclose = () => {
-            console.log('WebSocket disconnected');
-        };
+        });
 
         return () => {
-            ws.current?.close();
+            subscription.unsubscribe();
+            console.log(`STOMP: Unsubscribed from workflow ${workflowId}`);
         };
-    }, [dispatch]);
+    }, [dispatch, token, workflowId, client, connected]);
 };

@@ -32,12 +32,23 @@ export interface WorkflowApiResponse {
     };
 }
 
+export interface ApiWorkflowExecutionNode {
+    workflowNodeId: string;
+    state: string;
+    stageContext: any;
+    createdDate: string;
+    updatedDate: string;
+    children: ApiWorkflowExecutionNode[];
+}
+
 export interface ApiWorkflowExecution {
     id: string;
     workflowExecutionId: string;
     workflowId: string;
-    nodes: any[]; // We can define this more strictly if needed, but for now 'any' or the structure from JSON is fine
-    status: 'IDLE' | 'RUNNING' | 'SUCCESS' | 'FAILED' | 'PAUSED'; // Adjust status based on API
+    nodes: ApiWorkflowExecutionNode[];
+    status: 'IDLE' | 'IN_PROGRESS' | 'SUCCESS' | 'ERROR' | 'TERMINATED';
+    createdDate: string;
+    updatedDate: string;
 }
 
 export interface WorkflowExecutionsApiResponse {
@@ -45,6 +56,28 @@ export interface WorkflowExecutionsApiResponse {
         time: string;
         status: number;
         message: ApiWorkflowExecution[];
+    };
+}
+
+export interface ApiWorkflowExecutionLog {
+    id: string;
+    workflowId: string;
+    workflowExecutionId: string;
+    workflowNodeId: string;
+    workflowDomain: string;
+    nodeKey: string;
+    component: string;
+    timestamp: string;
+    level: string;
+    message: string;
+    context: any;
+}
+
+export interface WorkflowExecutionLogsApiResponse {
+    response: {
+        time: string;
+        status: number;
+        message: ApiWorkflowExecutionLog[];
     };
 }
 
@@ -78,6 +111,21 @@ export const workflowService = {
         }
 
         const data: WorkflowExecutionsApiResponse = await response.json();
+        return data.response.message;
+    },
+
+    async fetchWorkflowExecutionLogs(token: string, workflowId: string, executionId: string): Promise<ApiWorkflowExecutionLog[]> {
+        const response = await fetch(`${API_BASE_URL}/${workflowId}/executions/${executionId}/logs`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch workflow execution logs');
+        }
+
+        const data: WorkflowExecutionLogsApiResponse = await response.json();
         return data.response.message;
     },
 };

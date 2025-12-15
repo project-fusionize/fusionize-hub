@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,

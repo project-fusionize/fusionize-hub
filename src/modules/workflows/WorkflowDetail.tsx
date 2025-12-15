@@ -1,12 +1,15 @@
-import { useState } from 'react';
-import { ChevronLeft, Play, Download, FileText, PanelLeft } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Play, Download, FileText, PanelLeft } from 'lucide-react';
 import { WorkflowDiagram } from './WorkflowDiagram';
 import { NodeDetailPanel } from './NodeDetailPanel';
 import { WorkflowExecutionsList } from './WorkflowExecutionsList';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useWorkflows } from '../../hooks/useWorkflows';
+import { useWorkflowExecutions } from '../../hooks/useWorkflowExecutions';
+import { useWorkflowLogsSubscription } from '../../hooks/useWorkflowLogsSubscription';
 import type { Execution } from '../../hooks/useWorkflowExecutions';
+import { useMemo } from 'react';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -15,13 +18,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-
-interface WorkflowNode {
-  id: string;
-  type: string;
-  label: string;
-  status: 'success' | 'running' | 'failed' | 'pending';
-}
+import type { NodeData } from '../../hooks/useWorkflowGraph';
 
 interface WorkflowDetailProps {
   workflowId: string;
@@ -30,10 +27,22 @@ interface WorkflowDetailProps {
 }
 
 export function WorkflowDetail({ workflowId: _workflowId, executionId, onBack }: WorkflowDetailProps) {
-  const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
+  const [selectedNode, setSelectedNode] = useState<(NodeData & { id: string }) | null>(null);
   const [isExecutionsListOpen, setIsExecutionsListOpen] = useState(true);
   const { workflows } = useWorkflows();
   const navigate = useNavigate();
+  const { executions } = useWorkflowExecutions(_workflowId);
+  useWorkflowLogsSubscription(_workflowId);
+
+  const selectedExecution = useMemo(() =>
+    executions.find((e: Execution) => e.id === executionId),
+    [executions, executionId]
+  );
+
+  // Clear selected node when switching executions
+  useEffect(() => {
+    setSelectedNode(null);
+  }, [executionId]);
 
   const handleExecutionSelect = (execution: Execution) => {
     navigate(`/workflows/${_workflowId}/${execution.id}`);
@@ -43,7 +52,7 @@ export function WorkflowDetail({ workflowId: _workflowId, executionId, onBack }:
   const runId = executionId ? `#${executionId.slice(-8)}` : '';
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="absolute inset-0 flex flex-col">
       {/* Header */}
       <div className="bg-background border-b border-border px-8 py-4">
         <div className="flex items-center justify-between">
@@ -111,6 +120,8 @@ export function WorkflowDetail({ workflowId: _workflowId, executionId, onBack }:
           </Button>
 
           <WorkflowDiagram
+            workflow={workflow}
+            execution={selectedExecution}
             onNodeSelect={setSelectedNode}
             selectedNodeId={selectedNode?.id}
             executionId={executionId}
@@ -119,7 +130,11 @@ export function WorkflowDetail({ workflowId: _workflowId, executionId, onBack }:
 
         {/* Right Panel: Node Details (Fixed Width) */}
         <div className="w-[450px] bg-background border-l border-border transition-all duration-300">
-          <NodeDetailPanel node={selectedNode} />
+          <NodeDetailPanel
+            node={selectedNode}
+            workflowId={_workflowId}
+            executionId={executionId}
+          />
         </div>
       </div>
     </div>

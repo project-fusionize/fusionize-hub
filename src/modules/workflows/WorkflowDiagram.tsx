@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   type Node,
-  type Edge,
   Controls,
   Background,
-  useNodesState,
-  useEdgesState,
-  MarkerType,
   ReactFlow,
 } from '@xyflow/react';
+import type { Workflow } from '../../store/slices/workflowsSlice';
+import type { Execution } from '../../store/slices/executionsSlice';
+import { useWorkflowGraph, type NodeData } from '../../hooks/useWorkflowGraph';
 import '@xyflow/react/dist/style.css';
 import { CustomNode } from './CustomNode';
 import { useTheme } from '@/components/ui/theme-provider';
@@ -18,14 +17,15 @@ const nodeTypes = {
 };
 
 interface WorkflowDiagramProps {
-  onNodeSelect: (node: any) => void;
+  onNodeSelect: (node: NodeData & { id: string }) => void;
   selectedNodeId?: string;
   executionId?: string;
+  workflow?: Workflow;
+  execution?: Execution;
 }
 
-export function WorkflowDiagram({ onNodeSelect, selectedNodeId, executionId }: WorkflowDiagramProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+export function WorkflowDiagram({ onNodeSelect, selectedNodeId, executionId, workflow, execution }: WorkflowDiagramProps) {
+  const { nodes, edges, setNodes, onNodesChange, onEdgesChange } = useWorkflowGraph(workflow, execution, executionId);
   const { theme } = useTheme();
   const [colorMode, setColorMode] = useState<'light' | 'dark'>('dark');
 
@@ -40,194 +40,17 @@ export function WorkflowDiagram({ onNodeSelect, selectedNodeId, executionId }: W
     }
   }, [theme]);
 
-  useEffect(() => {
-    if (!executionId) {
-      setNodes([]);
-      setEdges([]);
-      return;
-    }
-
-    // Mock workflow data - represents a loan processing workflow
-    const initialNodes: Node[] = [
-      {
-        id: '1',
-        type: 'custom',
-        position: { x: 250, y: 50 },
-        data: {
-          label: 'Start Application',
-          nodeKey: 'startApplication',
-          nodeType: 'start',
-          status: 'success',
-          description: 'Start of the workflow',
-        },
-      },
-      {
-        id: '2',
-        type: 'custom',
-        position: { x: 250, y: 150 },
-        data: {
-          label: 'Verify Identity',
-          nodeKey: 'verifyIdentity',
-          nodeType: 'ai',
-          status: 'success',
-          description: 'AI-powered identity verification',
-        },
-      },
-      {
-        id: '3',
-        type: 'custom',
-        position: { x: 250, y: 250 },
-        data: {
-          label: 'Document Extraction',
-          nodeKey: 'documentExtraction',
-          nodeType: 'tool',
-          status: 'success',
-          description: 'Extract data from uploaded documents',
-        },
-      },
-      {
-        id: '4',
-        type: 'custom',
-        position: { x: 250, y: 350 },
-        data: {
-          label: 'Credit Score API',
-          nodeKey: 'creditScoreApi',
-          nodeType: 'api',
-          status: 'success',
-          description: 'Fetch credit score from bureau',
-        },
-      },
-      {
-        id: '5',
-        type: 'custom',
-        position: { x: 250, y: 450 },
-        data: {
-          label: 'Risk Assessment',
-          nodeKey: 'riskAssessment',
-          nodeType: 'decision',
-          status: 'running',
-          description: 'Evaluate loan risk',
-        },
-      },
-      {
-        id: '6',
-        type: 'custom',
-        position: { x: 100, y: 570 },
-        data: {
-          label: 'Approve Loan',
-          nodeKey: 'approveLoan',
-          nodeType: 'tool',
-          status: 'pending',
-          description: 'Auto-approve eligible loans',
-        },
-      },
-      {
-        id: '7',
-        type: 'custom',
-        position: { x: 400, y: 570 },
-        data: {
-          label: 'Manual Review',
-          nodeKey: 'manualReview',
-          nodeType: 'tool',
-          status: 'pending',
-          description: 'Route to human review',
-        },
-      },
-      {
-        id: '8',
-        type: 'custom',
-        position: { x: 250, y: 690 },
-        data: {
-          label: 'Send Notification',
-          nodeKey: 'sendNotification',
-          nodeType: 'api',
-          status: 'pending',
-          description: 'Notify customer of decision',
-        },
-      },
-    ];
-
-    const initialEdges: Edge[] = [
-      {
-        id: 'e1-2',
-        source: '1',
-        target: '2',
-        type: 'smoothstep',
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#10b981', strokeWidth: 2 },
-      },
-      {
-        id: 'e2-3',
-        source: '2',
-        target: '3',
-        type: 'smoothstep',
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#10b981', strokeWidth: 2 },
-      },
-      {
-        id: 'e3-4',
-        source: '3',
-        target: '4',
-        type: 'smoothstep',
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#10b981', strokeWidth: 2 },
-      },
-      {
-        id: 'e4-5',
-        source: '4',
-        target: '5',
-        type: 'smoothstep',
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#10b981', strokeWidth: 2 },
-      },
-      {
-        id: 'e5-6',
-        source: '5',
-        target: '6',
-        type: 'smoothstep',
-        label: 'Low Risk',
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#eab308', strokeWidth: 2 },
-      },
-      {
-        id: 'e5-7',
-        source: '5',
-        target: '7',
-        type: 'smoothstep',
-        label: 'High Risk',
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#eab308', strokeWidth: 2 },
-      },
-      {
-        id: 'e6-8',
-        source: '6',
-        target: '8',
-        type: 'smoothstep',
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#9ca3af', strokeWidth: 2 },
-      },
-      {
-        id: 'e7-8',
-        source: '7',
-        target: '8',
-        type: 'smoothstep',
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#9ca3af', strokeWidth: 2 },
-      },
-    ];
-
-    setNodes(initialNodes);
-    setEdges(initialEdges);
-  }, [setNodes, setEdges, executionId]);
-
   const onNodeClick = useCallback(
-    (_: any, node: Node) => {
+    (_: any, node: Node<NodeData>) => {
       onNodeSelect({
         id: node.id,
         label: node.data.label,
-        type: node.data.nodeType,
+        nodeKey: node.data.nodeKey,
+        nodeType: node.data.nodeType,
         status: node.data.status,
-        description: node.data.description,
+        component: node.data.component,
+        stageContext: node.data.stageContext,
+        inputContext: node.data.inputContext,
       });
     },
     [onNodeSelect]
