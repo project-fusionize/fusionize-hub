@@ -33,7 +33,7 @@ export const statusConfig = {
         borderColor: 'border-green-500/20',
         badgeVariant: 'outline' as const,
         description: 'Execution completed successfully.',
-        cardBg: 'bg-green-50/50 dark:bg-green-900/20'
+        cardBg: 'bg-green-50 dark:bg-green-900/30'
     },
     working: {
         icon: Loader2,
@@ -42,7 +42,7 @@ export const statusConfig = {
         borderColor: 'border-yellow-500/20',
         badgeVariant: 'secondary' as const,
         description: 'Currently executing or processing.',
-        cardBg: 'bg-yellow-50/50 dark:bg-yellow-900/20'
+        cardBg: 'bg-yellow-50 dark:bg-yellow-900/30'
     },
     waiting: {
         icon: Clock,
@@ -51,7 +51,7 @@ export const statusConfig = {
         borderColor: 'border-blue-500/20',
         badgeVariant: 'secondary' as const,
         description: 'Paused, waiting for an external event or input.',
-        cardBg: 'bg-blue-50/50 dark:bg-blue-900/20'
+        cardBg: 'bg-blue-50 dark:bg-blue-900/30'
     },
     failed: {
         icon: XCircle,
@@ -60,7 +60,7 @@ export const statusConfig = {
         borderColor: 'border-red-500/20',
         badgeVariant: 'destructive' as const,
         description: 'Execution failed due to an error.',
-        cardBg: 'bg-red-50/50 dark:bg-red-900/20'
+        cardBg: 'bg-red-50 dark:bg-red-900/30'
     },
     pending: {
         icon: Circle,
@@ -69,7 +69,7 @@ export const statusConfig = {
         borderColor: 'border-border/50',
         badgeVariant: 'outline' as const,
         description: 'Scheduled for execution but not yet started.',
-        cardBg: 'bg-card'
+        cardBg: 'bg-muted/40 dark:bg-card'
     },
     idle: {
         icon: CircleDot,
@@ -78,10 +78,10 @@ export const statusConfig = {
         borderColor: 'border-cyan-500/20',
         badgeVariant: 'outline' as const,
         description: 'Listening for activation',
-        cardBg: 'bg-cyan-50/50 dark:bg-cyan-900/20'
+        cardBg: 'bg-cyan-50 dark:bg-cyan-900/30'
     },
 
     // Legacy
-    success: { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-500/10', borderColor: 'border-green-500/20', badgeVariant: 'outline' as const, description: 'Success.', cardBg: 'bg-green-50/50 dark:bg-green-900/20' },
-    running: { icon: Loader2, color: 'text-yellow-600', bg: 'bg-yellow-500/10', borderColor: 'border-yellow-500/50', badgeVariant: 'secondary' as const, description: 'Running.', cardBg: 'bg-yellow-50/50 dark:bg-yellow-900/20' },
+    success: { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-500/10', borderColor: 'border-green-500/20', badgeVariant: 'outline' as const, description: 'Success.', cardBg: 'bg-green-50 dark:bg-green-900/30' },
+    running: { icon: Loader2, color: 'text-yellow-600', bg: 'bg-yellow-500/10', borderColor: 'border-yellow-500/50', badgeVariant: 'secondary' as const, description: 'Running.', cardBg: 'bg-yellow-50 dark:bg-yellow-900/30' },
 };

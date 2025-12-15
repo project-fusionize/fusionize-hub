@@ -1,9 +1,13 @@
+import { useEffect, useRef } from 'react';
 import { Play, CheckCircle, XCircle, AlertCircle, Clock, Loader2, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useDispatch, useSelector } from 'react-redux';
 import { useWorkflowExecutions } from '../../hooks/useWorkflowExecutions';
 import type { Execution } from '../../hooks/useWorkflowExecutions';
+import { clearNewlyAddedExecutionId } from '../../store/slices/executionsSlice';
+import type { RootState } from '../../store';
 
 interface WorkflowExecutionsListProps {
     workflowId: string;
@@ -18,6 +22,28 @@ export function WorkflowExecutionsList({
 }: WorkflowExecutionsListProps) {
     const { executions, loading, error, refresh } = useWorkflowExecutions(workflowId);
 
+    // Auto-select newly added execution
+    const newlyAddedId = useSelector((state: RootState) => state.executions.newlyAddedExecutionId);
+    const dispatch = useDispatch();
+    const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+    useEffect(() => {
+        if (newlyAddedId) {
+            const execution = executions.find(e => e.id === newlyAddedId);
+            if (execution && onSelect) {
+                onSelect(execution);
+
+                // Scroll to the item
+                const element = itemRefs.current[newlyAddedId];
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+
+                dispatch(clearNewlyAddedExecutionId());
+            }
+        }
+    }, [newlyAddedId, executions, onSelect, dispatch]);
+
     if (loading && executions.length === 0) {
         return (
             <div className="flex flex-col h-full bg-background border-r border-border items-center justify-center">
@@ -25,6 +51,9 @@ export function WorkflowExecutionsList({
             </div>
         );
     }
+
+    const idleExecution = executions.find(e => e.status === 'idle');
+    const pastExecutions = executions.filter(e => e.status !== 'idle');
 
     return (
         <div className="flex flex-col h-full bg-background border-r border-border">
@@ -40,6 +69,30 @@ export function WorkflowExecutionsList({
                 </div>
             </div>
 
+            {/* Frozen/pinned Idle Execution */}
+            {idleExecution && (
+                <div className="p-2 border-b border-border">
+                    <div
+                        key={idleExecution.id}
+                        ref={(el) => { itemRefs.current[idleExecution.id] = el; }}
+                        onClick={() => onSelect?.(idleExecution)}
+                        className={cn(
+                            "group flex flex-col gap-1 p-3 rounded-lg border text-sm transition-all hover:bg-muted/50 cursor-pointer",
+                            selectedId === idleExecution.id ? "bg-muted border-primary/50" : "border-transparent bg-card/10"
+                        )}
+                    >
+                        <div className="flex items-center justify-between">
+                            <span className="font-mono text-xs text-muted-foreground" title={idleExecution.workflowExecutionId}>
+                                #{idleExecution.workflowExecutionId.slice(-8)}
+                            </span>
+                            <StatusBadge status={idleExecution.status} />
+                        </div>
+
+
+                    </div>
+                </div>
+            )}
+
             {error ? (
                 <div className="flex-1 flex flex-col items-center justify-center p-4 text-center">
                     <p className="text-xs text-destructive mb-2">{error}</p>
@@ -47,13 +100,14 @@ export function WorkflowExecutionsList({
                 </div>
             ) : (
                 <div className="flex-1 overflow-auto p-2 space-y-1">
-                    {executions.length === 0 ? (
+                    {pastExecutions.length === 0 && !idleExecution ? (
                         <div className="text-center p-4 text-xs text-muted-foreground">
                             No executions found.
                         </div>
-                    ) : executions.map((exec) => (
+                    ) : pastExecutions.map((exec) => (
                         <div
                             key={exec.id}
+                            ref={(el) => { itemRefs.current[exec.id] = el; }}
                             onClick={() => onSelect?.(exec)}
                             className={cn(
                                 "group flex flex-col gap-1 p-3 rounded-lg border text-sm transition-all hover:bg-muted/50 cursor-pointer",

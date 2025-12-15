@@ -15,12 +15,14 @@ interface ExecutionsState {
     byWorkflowId: Record<string, Execution[]>;
     loadingStatus: Record<string, 'idle' | 'loading' | 'succeeded' | 'failed'>;
     errors: Record<string, string | null>;
+    newlyAddedExecutionId: string | null;
 }
 
 const initialState: ExecutionsState = {
     byWorkflowId: {},
     loadingStatus: {},
     errors: {},
+    newlyAddedExecutionId: null,
 };
 
 export const fetchExecutions = createAsyncThunk(
@@ -59,6 +61,7 @@ const executionsSlice = createSlice({
             }
             // Add to start of list
             state.byWorkflowId[workflowId].unshift(execution);
+            state.newlyAddedExecutionId = execution.id;
         },
         updateExecution: (state, action: PayloadAction<{ workflowId: string; executionId: string; updates: Partial<Execution> }>) => {
             const { workflowId, executionId, updates } = action.payload;
@@ -84,8 +87,12 @@ const executionsSlice = createSlice({
             } else {
                 // Add new to start
                 list.unshift(execution);
+                state.newlyAddedExecutionId = execution.id;
             }
         },
+        clearNewlyAddedExecutionId: (state) => {
+            state.newlyAddedExecutionId = null;
+        }
     },
     extraReducers: (builder) => {
         builder
@@ -107,5 +114,5 @@ const executionsSlice = createSlice({
     },
 });
 
-export const { addExecution, updateExecution, upsertExecution } = executionsSlice.actions;
+export const { addExecution, updateExecution, upsertExecution, clearNewlyAddedExecutionId } = executionsSlice.actions;
 export default executionsSlice.reducer;

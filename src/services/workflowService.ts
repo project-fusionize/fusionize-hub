@@ -48,6 +48,28 @@ export interface WorkflowExecutionsApiResponse {
     };
 }
 
+export interface ApiWorkflowExecutionLog {
+    id: string;
+    workflowId: string;
+    workflowExecutionId: string;
+    workflowNodeId: string;
+    workflowDomain: string;
+    nodeKey: string;
+    component: string;
+    timestamp: string;
+    level: string;
+    message: string;
+    context: any;
+}
+
+export interface WorkflowExecutionLogsApiResponse {
+    response: {
+        time: string;
+        status: number;
+        message: ApiWorkflowExecutionLog[];
+    };
+}
+
 const API_BASE_URL = 'http://localhost:8081/api/1.0/workflow';
 
 export const workflowService = {
@@ -78,6 +100,21 @@ export const workflowService = {
         }
 
         const data: WorkflowExecutionsApiResponse = await response.json();
+        return data.response.message;
+    },
+
+    async fetchWorkflowExecutionLogs(token: string, workflowId: string, executionId: string): Promise<ApiWorkflowExecutionLog[]> {
+        const response = await fetch(`${API_BASE_URL}/${workflowId}/executions/${executionId}/logs`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch workflow execution logs');
+        }
+
+        const data: WorkflowExecutionLogsApiResponse = await response.json();
         return data.response.message;
     },
 };

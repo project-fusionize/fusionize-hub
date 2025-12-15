@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Clock, Search, ArrowRightLeft, GitBranch } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -20,13 +20,27 @@ import type { NodeData } from '../../hooks/useWorkflowGraph';
 import { NodeLegendModal } from './NodeLegendModal';
 import { typeIcons, statusConfig } from './node-visuals';
 
+import { useWorkflowExecutionLogs } from '../../hooks/useWorkflowExecutionLogs';
+
 interface NodeDetailPanelProps {
   node: (NodeData & { id: string }) | null;
+  workflowId: string;
+  executionId?: string;
 }
 
-export function NodeDetailPanel({ node }: NodeDetailPanelProps) {
+export function NodeDetailPanel({ node, workflowId, executionId }: NodeDetailPanelProps) {
   const [logSearch, setLogSearch] = useState('');
   const [showDiff, setShowDiff] = useState(false);
+  const { logs: allLogs } = useWorkflowExecutionLogs(workflowId, executionId);
+  const firstNodeLogRef = useRef<HTMLDivElement>(null);
+
+  const firstMatchId = allLogs.find(l => l.workflowNodeId === node?.id)?.id;
+
+  useEffect(() => {
+    if (firstNodeLogRef.current) {
+      firstNodeLogRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [node?.id, firstMatchId]);
 
   if (!node) {
     return (
@@ -65,15 +79,13 @@ export function NodeDetailPanel({ node }: NodeDetailPanelProps) {
     retries: 0,
   };
 
-  const mockLogs = [
-    '[12:01:33] INFO: Node execution started',
-    '[12:01:34] DEBUG: Loading configuration',
-    `[12:01:34] INFO: ${node.nodeType.includes('ai') ? 'Connecting to AI model endpoint' : 'Initializing process'}`,
-    '[12:01:35] DEBUG: Request sent successfully',
-    '[12:01:35] INFO: Response received',
-    '[12:01:36] INFO: Validation passed',
-    '[12:01:36] INFO: Node execution completed',
-  ];
+  const formatLogTime = (timestamp: string) => {
+    try {
+      return new Date(timestamp).toLocaleTimeString();
+    } catch (e) {
+      return timestamp;
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-background text-sm">
@@ -245,16 +257,37 @@ export function NodeDetailPanel({ node }: NodeDetailPanelProps) {
               </div>
             </div>
             <div className="flex-1 overflow-auto p-2 font-mono text-[10px] space-y-0.5">
-              {mockLogs
-                .filter((log) => log.toLowerCase().includes(logSearch.toLowerCase()))
-                .map((log, index) => (
-                  <div key={index} className="flex gap-2 hover:bg-muted/50 p-1 rounded-sm">
-                    <span className="text-muted-foreground shrink-0 opacity-70 w-14">{log.split(']')[0]}]</span>
-                    <span className={`break-all ${log.includes('INFO') ? 'text-blue-500' : log.includes('DEBUG') ? 'text-muted-foreground' : 'text-foreground'}`}>
-                      {log.split(']').slice(1).join(']')}
-                    </span>
-                  </div>
-                ))}
+              {allLogs.length === 0 ? (
+                <div className="text-center p-4 text-muted-foreground">No logs found.</div>
+              ) : (
+                allLogs
+                  .filter((log) => log.message.toLowerCase().includes(logSearch.toLowerCase()))
+                  .map((log) => {
+                    const isCurrentNode = log.workflowNodeId === node.id;
+                    return (
+                      <div
+                        key={log.id}
+                        ref={log.id === firstMatchId ? firstNodeLogRef : null}
+                        className={cn(
+                          "flex gap-2 p-1 rounded-sm transition-opacity duration-200",
+                          isCurrentNode ? "bg-primary/5 opacity-100 font-medium" : "opacity-40 hover:opacity-100"
+                        )}
+                      >
+                        <span className="text-muted-foreground shrink-0 opacity-70 w-28" title={log.timestamp}>
+                          [{formatLogTime(log.timestamp)}] {log.level}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs text-muted-foreground/60 mr-2 border border-border px-1 rounded">
+                            {log.nodeKey}
+                          </span>
+                          <span className={`break-all ${log.level === 'INFO' ? 'text-blue-500 dark:text-blue-400' : log.level === 'WARN' ? 'text-yellow-500 dark:text-yellow-400' : log.level === 'DEBUG' ? 'text-muted-foreground' : log.level === 'ERROR' ? 'text-red-500' : 'text-foreground'}`}>
+                            {log.message}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+              )}
             </div>
           </TabsContent>
 
