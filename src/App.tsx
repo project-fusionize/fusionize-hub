@@ -11,6 +11,8 @@ import { AgentsModels } from './modules/agents/AgentsModels'
 import { AgentsTools } from './modules/agents/AgentsTools'
 import { AgentsPrompts } from './modules/agents/AgentsPrompts'
 import { AgentsStorages } from './modules/storage/AgentsStorages'
+import { ProcessList } from './modules/processes/ProcessList'
+import { ProcessDetail } from './modules/processes/ProcessDetail'
 import BPM from './Bpmn'
 import { useWebSocketSubscription } from './hooks/useWebSocketSubscription'
 import { StompSessionProvider } from './services/StompSessionProvider'
@@ -41,6 +43,11 @@ function App() {
                 <Route path="/workflows" element={<WorkflowsRoute />} />
                 <Route path="/workflows/:id" element={<WorkflowDetailRoute />} />
                 <Route path="/workflows/:id/:executionId" element={<WorkflowDetailRoute />} />
+
+                <Route path="/processes" element={<ProcessList />} />
+                <Route path="/processes/:id" element={<ProcessDetail />} />
+                <Route path="/processes/:id/:executionId" element={<ProcessDetail />} />
+
                 <Route path="/agents/models" element={<AgentsModels />} />
                 <Route path="/agents/tools" element={<AgentsTools />} />
                 <Route path="/agents/prompts" element={<AgentsPrompts />} />
