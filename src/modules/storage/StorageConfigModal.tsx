@@ -81,9 +81,24 @@ export function StorageConfigModal({ onClose, onSave, initialData }: StorageConf
   const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const providersByType: Record<string, string[]> = {
-    'Vector DB': ['Pinecone', 'Qdrant', 'Weaviate', 'ChromaDB (Local)', 'Milvus'],
-    'Blob Storage': ['AWS S3', 'Azure Blob', 'Google Cloud Storage', 'MinIO', 'Local Filesystem'],
-    'Document Store': ['MongoDB', 'PostgreSQL', 'Elasticsearch', 'Firestore'],
+    'Vector DB': ['Pinecone', 'ChromaDB (Local)'],
+    'Blob Storage': ['AWS S3', 'Azure Blob'],
+  };
+
+  const providerLogos: Record<string, string> = {
+    'PINECONE': 'https://logos-api.apistemic.com/domain:pinecone.io',
+    'MONGO_DB': 'https://logos-api.apistemic.com/domain:mongodb.com',
+    'CHROMA_DB': 'https://logos-api.apistemic.com/domain:trychroma.com',
+    'AWS_S3': 'https://logos-api.apistemic.com/domain:amazon.com',
+    'AZURE_BLOB': 'https://logos-api.apistemic.com/domain:microsoft.com',
+  };
+
+  const providerDisplayToEnum: Record<string, string> = {
+    'Pinecone': 'PINECONE',
+    'MongoDB': 'MONGO_DB',
+    'ChromaDB (Local)': 'CHROMA_DB',
+    'AWS S3': 'AWS_S3',
+    'Azure Blob': 'AZURE_BLOB',
   };
 
   const handleTest = async () => {
@@ -146,11 +161,14 @@ export function StorageConfigModal({ onClose, onSave, initialData }: StorageConf
               <Label htmlFor="type">Storage Type</Label>
               <Select
                 value={formData.type}
-                onValueChange={(value: any) => setFormData({
-                  ...formData,
-                  type: value,
-                  provider: providersByType[value]?.[0] || '',
-                })}
+                onValueChange={(value: any) => {
+                  setFormData({
+                    ...formData,
+                    type: value,
+                    provider: providersByType[value]?.[0] || '',
+                  });
+                  setCustomProperties({});
+                }}
                 disabled={isEditing}
               >
                 <SelectTrigger>
@@ -159,7 +177,6 @@ export function StorageConfigModal({ onClose, onSave, initialData }: StorageConf
                 <SelectContent>
                   <SelectItem value="Vector DB">Vector Database</SelectItem>
                   <SelectItem value="Blob Storage">Blob Storage</SelectItem>
-                  <SelectItem value="Document Store">Document Store</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -169,7 +186,11 @@ export function StorageConfigModal({ onClose, onSave, initialData }: StorageConf
               <Label htmlFor="provider">Provider</Label>
               <Select
                 value={formData.provider}
-                onValueChange={(value) => setFormData({ ...formData, provider: value })}
+                onValueChange={(value) => {
+                  setFormData({ ...formData, provider: value });
+                  setCustomProperties({});
+                }}
+                disabled={isEditing}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select provider" />
@@ -177,7 +198,16 @@ export function StorageConfigModal({ onClose, onSave, initialData }: StorageConf
                 <SelectContent>
                   {providersByType[formData.type]?.map((provider) => (
                     <SelectItem key={provider} value={provider}>
-                      {provider}
+                      <div className="flex items-center gap-2">
+                        {providerDisplayToEnum[provider] && providerLogos[providerDisplayToEnum[provider]] && (
+                          <img
+                            src={providerLogos[providerDisplayToEnum[provider]]}
+                            alt={provider}
+                            className="w-4 h-4 object-contain rounded-sm"
+                          />
+                        )}
+                        <span>{provider}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -187,6 +217,7 @@ export function StorageConfigModal({ onClose, onSave, initialData }: StorageConf
 
           <div className="pt-2">
             <KeyValueTable
+              key={formData.provider}
               initialData={customProperties}
               onChange={setCustomProperties}
               title="Properties"

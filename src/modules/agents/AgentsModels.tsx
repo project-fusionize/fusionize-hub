@@ -39,10 +39,10 @@ export function AgentsModels() {
   const [modelToDelete, setModelToDelete] = useState<string | null>(null);
 
   const providerLogos: Record<string, string> = {
-    'OpenAI': 'https://logo.clearbit.com/openai.com',
-    'Anthropic': 'https://logo.clearbit.com/anthropic.com',
-    'Azure': 'https://logo.clearbit.com/azure.microsoft.com',
-    'Google': 'https://logo.clearbit.com/google.com',
+    'OpenAI': 'https://logos-api.apistemic.com/domain:openai.com',
+    'Anthropic': 'https://logos-api.apistemic.com/domain:anthropic.com',
+    'Azure': 'https://logos-api.apistemic.com/domain:microsoft.com',
+    'Google': 'https://logos-api.apistemic.com/domain:google.com',
   };
 
   const modeColors = {
@@ -171,11 +171,11 @@ export function AgentsModels() {
                             <Server className="w-5 h-5 text-muted-foreground" />
                           ) : (
                             <img
-                              src={providerLogos[model.provider] || 'https://logo.clearbit.com/openai.com'}
+                              src={providerLogos[model.provider] || 'https://logos-api.apistemic.com/domain:openai.com'}
                               alt={model.provider}
                               className="w-5 h-5 object-contain rounded-sm"
                               onError={(e) => {
-                                (e.target as HTMLImageElement).src = 'https://logo.clearbit.com/openai.com';
+                                (e.target as HTMLImageElement).src = 'https://logos-api.apistemic.com/domain:openai.com';
                                 (e.target as HTMLImageElement).onerror = null;
                               }}
                             />

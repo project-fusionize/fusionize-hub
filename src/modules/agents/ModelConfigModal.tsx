@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle, AlertCircle, Server } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
 import { chatModelService } from '../../services/chatModelService';
 import {
@@ -28,6 +28,13 @@ interface ModelConfigModalProps {
   onSave: (model: any) => void;
   initialData?: any;
 }
+
+const providerLogos: Record<string, string> = {
+  'OpenAI': 'https://logos-api.apistemic.com/domain:openai.com',
+  'Anthropic': 'https://logos-api.apistemic.com/domain:anthropic.com',
+  'Azure': 'https://logos-api.apistemic.com/domain:microsoft.com',
+  'Google': 'https://logos-api.apistemic.com/domain:google.com',
+};
 
 export function ModelConfigModal({ onClose, onSave, initialData }: ModelConfigModalProps) {
   const [formData, setFormData] = useState({
@@ -148,17 +155,43 @@ export function ModelConfigModal({ onClose, onSave, initialData }: ModelConfigMo
             <Label htmlFor="provider">Provider</Label>
             <Select
               value={formData.provider}
+              disabled={isEditing}
               onValueChange={(value: any) => setFormData({ ...formData, provider: value })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a provider" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="OpenAI">OpenAI</SelectItem>
-                <SelectItem value="Anthropic">Anthropic</SelectItem>
-                <SelectItem value="Azure">Azure OpenAI</SelectItem>
-                <SelectItem value="Google">Google (Gemini)</SelectItem>
-                <SelectItem value="Local">Local (Ollama/LM Studio)</SelectItem>
+                <SelectItem value="OpenAI">
+                  <div className="flex items-center gap-2">
+                    <img src={providerLogos['OpenAI']} alt="OpenAI" className="w-4 h-4 object-contain rounded-sm" />
+                    <span>OpenAI</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="Anthropic">
+                  <div className="flex items-center gap-2">
+                    <img src={providerLogos['Anthropic']} alt="Anthropic" className="w-4 h-4 object-contain rounded-sm" />
+                    <span>Anthropic</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="Azure">
+                  <div className="flex items-center gap-2">
+                    <img src={providerLogos['Azure']} alt="Azure" className="w-4 h-4 object-contain rounded-sm" />
+                    <span>Azure OpenAI</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="Google">
+                  <div className="flex items-center gap-2">
+                    <img src={providerLogos['Google']} alt="Google" className="w-4 h-4 object-contain rounded-sm" />
+                    <span>Google (Gemini)</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="Local">
+                  <div className="flex items-center gap-2">
+                    <Server className="w-4 h-4 text-muted-foreground" />
+                    <span>Local (Ollama/LM Studio)</span>
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
