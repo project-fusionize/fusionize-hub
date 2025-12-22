@@ -20,6 +20,7 @@
   },
   "registries": {
     "@blocks": "https://blocks.so/r/{name}.json",
-    "@animate-ui": "https://animate-ui.com/r/{name}.json"
+    "@animate-ui": "https://animate-ui.com/r/{name}.json",
+    "@manifest": "https://ui.manifest.build/r/{name}.json"
   }
 }

@@ -81,6 +81,30 @@ export interface WorkflowExecutionLogsApiResponse {
     };
 }
 
+export interface ApiWorkflowInteraction {
+    id: string;
+    workflowId: string;
+    workflowExecutionId: string;
+    workflowNodeId: string;
+    workflowDomain: string;
+    nodeKey: string;
+    component: string;
+    timestamp: string;
+    actor: 'human' | 'ai' | 'system';
+    type: 'MESSAGE' | 'THOUGHT' | 'OBSERVATION';
+    visibility: string;
+    content: string;
+    context: any;
+}
+
+export interface WorkflowInteractionsApiResponse {
+    response: {
+        time: string;
+        status: number;
+        message: ApiWorkflowInteraction[];
+    };
+}
+
 const API_BASE_URL = 'http://localhost:8081/api/1.0/workflow';
 
 export const workflowService = {
@@ -126,6 +150,21 @@ export const workflowService = {
         }
 
         const data: WorkflowExecutionLogsApiResponse = await response.json();
+        return data.response.message;
+    },
+
+    async fetchWorkflowInteractions(token: string, workflowId: string, executionId: string): Promise<ApiWorkflowInteraction[]> {
+        const response = await fetch(`${API_BASE_URL}/${workflowId}/executions/${executionId}/interaction`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch workflow interactions');
+        }
+
+        const data: WorkflowInteractionsApiResponse = await response.json();
         return data.response.message;
     },
 };
