@@ -9,7 +9,8 @@ import { WorkflowsList } from './modules/workflows/WorkflowsList'
 import { WorkflowDetail } from './modules/workflows/WorkflowDetail'
 import { AgentsModels } from './modules/agents/AgentsModels'
 import { AgentsTools } from './modules/agents/AgentsTools'
-import { AgentsPrompts } from './modules/agents/AgentsPrompts'
+import { Agents } from './modules/agents/Agents'
+import { AgentEditor } from './modules/agents/AgentEditor'
 import { AgentsStorages } from './modules/storage/AgentsStorages'
 import { ProcessList } from './modules/processes/ProcessList'
 import { ProcessDetail } from './modules/processes/ProcessDetail'
@@ -48,9 +49,11 @@ function App() {
                 <Route path="/processes/:id" element={<ProcessDetail />} />
                 <Route path="/processes/:id/:executionId" element={<ProcessDetail />} />
 
-                <Route path="/agents/models" element={<AgentsModels />} />
-                <Route path="/agents/tools" element={<AgentsTools />} />
-                <Route path="/agents/prompts" element={<AgentsPrompts />} />
+                <Route path="/ai/models" element={<AgentsModels />} />
+                <Route path="/ai/tools" element={<AgentsTools />} />
+                <Route path="/ai/agents" element={<Agents />} />
+                <Route path="/ai/agents/new" element={<AgentEditor />} />
+                <Route path="/ai/agents/:domain" element={<AgentEditor />} />
                 <Route path="/storage" element={<AgentsStorages />} />
               </Routes>
             </SidebarInset>

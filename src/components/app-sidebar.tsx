@@ -50,24 +50,24 @@ const dashboardRoutes: Route[] = [
     link: "/processes",
   },
   {
-    id: "agents",
-    title: "Agents",
+    id: "ai",
+    title: "AI",
     icon: <Bot className="size-4" />,
     link: "#",
     subs: [
       {
         title: "Models",
-        link: "/agents/models",
+        link: "/ai/models",
         icon: <Brain className="size-4" />,
       },
       {
         title: "Tools",
-        link: "/agents/tools",
+        link: "/ai/tools",
         icon: <Wrench className="size-4" />,
       },
       {
-        title: "Prompts",
-        link: "/agents/prompts",
+        title: "Agents",
+        link: "/ai/agents",
         icon: <MessageSquare className="size-4" />,
       },
     ],
