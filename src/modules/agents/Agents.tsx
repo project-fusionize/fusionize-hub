@@ -23,11 +23,15 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAgents } from '../../hooks/useAgents';
+import { useChatModels } from '../../hooks/useChatModels';
 import type { AgentRole, AgentConfig } from './types';
+
+import { providerLogos } from './constants';
 
 export function Agents() {
     const navigate = useNavigate();
     const { agents, loading, error, deleteAgent } = useAgents();
+    const { models } = useChatModels();
     const [searchQuery, setSearchQuery] = useState('');
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [selectedRole, setSelectedRole] = useState<string>('All');
@@ -205,8 +209,23 @@ export function Agents() {
                                 {/* Meta Info Row */}
                                 <div className="flex flex-wrap items-center gap-6 mb-4 text-sm text-muted-foreground">
                                     <div className="flex items-center gap-2" title="Model Domain">
-                                        <Brain className="w-4 h-4 text-primary/70" />
-                                        <span className="font-medium text-foreground">{agent.modelConfigDomain}</span>
+                                        {(() => {
+                                            const modelConfig = models.find(m => m.domain === agent.modelConfigDomain);
+                                            const logoUrl = modelConfig?.provider ? providerLogos[modelConfig.provider] : null;
+
+                                            return (
+                                                <>
+                                                    {logoUrl ? (
+                                                        <img src={logoUrl} alt={modelConfig?.provider} className="w-4 h-4 object-contain rounded-sm" />
+                                                    ) : (
+                                                        <Brain className="w-4 h-4 text-primary/70" />
+                                                    )}
+                                                    <span className="font-medium text-foreground">
+                                                        {modelConfig?.provider}-{modelConfig?.modelName} <small className='text-muted-foreground'>({agent.modelConfigDomain})</small>
+                                                    </span>
+                                                </>
+                                            );
+                                        })()}
                                     </div>
                                     <div className="h-4 w-px bg-border" />
                                     <div className="flex items-center gap-2">

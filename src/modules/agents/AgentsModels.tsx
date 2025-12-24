@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAuth } from '../../auth/AuthContext';
 import { useChatModels, type Model } from '../../hooks/useChatModels';
+import { providerLogos } from './constants';
 
 export function AgentsModels() {
   const { isAuthenticated, login } = useAuth();
@@ -37,13 +38,6 @@ export function AgentsModels() {
   const [showModal, setShowModal] = useState(false);
   const [editingModel, setEditingModel] = useState<Model | null>(null);
   const [modelToDelete, setModelToDelete] = useState<string | null>(null);
-
-  const providerLogos: Record<string, string> = {
-    'OpenAI': 'https://logos-api.apistemic.com/domain:openai.com',
-    'Anthropic': 'https://logos-api.apistemic.com/domain:anthropic.com',
-    'Azure': 'https://logos-api.apistemic.com/domain:microsoft.com',
-    'Google': 'https://logos-api.apistemic.com/domain:google.com',
-  };
 
   const modeColors = {
     Chat: 'bg-blue-500/10 text-blue-600 hover:bg-blue-500/20',

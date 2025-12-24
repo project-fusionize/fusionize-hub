@@ -15,9 +15,10 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, ArrowLeft, Loader2, Newspaper } from 'lucide-react';
+import { X, ArrowLeft, Loader2, Newspaper, Server } from 'lucide-react';
 import type { AgentRole, AgentConfig } from './types';
 import { Separator } from '@/components/ui/separator';
+import { providerLogos } from './constants';
 
 export function AgentEditor() {
     const { domain } = useParams();
@@ -236,7 +237,19 @@ export function AgentEditor() {
                                 <SelectContent>
                                     {models.map(model => (
                                         <SelectItem key={model.id} value={model.domain}>
-                                            {model.name} ({model.domain})
+                                            <div className="flex items-center gap-2">
+                                                {model.provider && providerLogos[model.provider] ? (
+                                                    <img
+                                                        src={providerLogos[model.provider]}
+                                                        alt={model.provider}
+                                                        className="w-4 h-4 object-contain rounded-sm"
+                                                    />
+                                                ) : (
+                                                    <Server className="w-4 h-4 text-muted-foreground" />
+                                                )}
+                                                <span>{model.name}</span>
+                                                <span className="text-muted-foreground text-xs ml-1">({model.modelName || model.domain})</span>
+                                            </div>
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
