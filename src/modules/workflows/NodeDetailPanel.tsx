@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Clock, Search, ArrowRightLeft, GitBranch, MessageSquareDashed } from 'lucide-react';
+import { Clock, Search, ArrowRightLeft, GitBranch, MessageSquareDashed, Settings } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -186,6 +186,21 @@ export function NodeDetailPanel({ node, workflowId, executionId }: NodeDetailPan
                 ))}
               </div>
             </div>
+
+            {/* Component Configuration */}
+            {node.componentConfig?.config && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <Settings className="w-3.5 h-3.5" />
+                  Component Configuration
+                </div>
+                <div className="border border-border/50 rounded-md bg-muted/20 overflow-hidden">
+                  <div className="p-2 max-h-[300px] overflow-auto">
+                    <JsonViewer data={node.componentConfig.config} initialExpanded={true} />
+                  </div>
+                </div>
+              </div>
+            )}
           </TabsContent>
 
           {/* Context Tab */}
@@ -305,8 +320,8 @@ export function NodeDetailPanel({ node, workflowId, executionId }: NodeDetailPan
             )}
           </TabsContent>
         </div>
-      </Tabs>
-    </div>
+      </Tabs >
+    </div >
   );
 }
 

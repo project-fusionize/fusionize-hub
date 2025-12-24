@@ -19,6 +19,7 @@ export interface NodeData extends Record<string, unknown> {
     | 'human-wait' | 'sys-wait' | 'ai-wait' | 'wait';
     status: 'done' | 'working' | 'waiting' | 'failed' | 'pending' | 'idle';
     component?: string;
+    componentConfig?: any;
     stageContext?: any;
     inputContext?: any;
     selected?: boolean;
@@ -218,6 +219,7 @@ export const useWorkflowGraph = (
                     nodeType: uiNodeType,
                     status: status,
                     component: node.component,
+                    componentConfig: node.componentConfig,
                     stageContext: stageContext,
                     inputContext: inputContext,
                 }
