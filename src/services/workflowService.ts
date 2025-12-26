@@ -33,6 +33,7 @@ export interface WorkflowApiResponse {
 }
 
 export interface ApiWorkflowExecutionNode {
+    id: string; // The unique execution ID for this node instance
     workflowNodeId: string;
     state: string;
     stageContext: any;
