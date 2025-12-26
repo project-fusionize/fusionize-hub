@@ -1,5 +1,5 @@
 
-import type { AgentRole, AgentConfig as ApiAgentConfig } from '../modules/agents/types';
+import type { AgentConfig as ApiAgentConfig } from '../modules/agents/types';
 
 export type { ApiAgentConfig };
 
@@ -11,7 +11,9 @@ export interface ApiResponse {
     };
 }
 
-const API_BASE_URL = 'http://localhost:8081/api/1.0/agent-config';
+import { CONFIG } from '../config';
+
+const API_BASE_URL = `${CONFIG.API_BASE_URL}/api/1.0/agent-config`;
 
 export const agentService = {
     async fetchAgents(token: string): Promise<ApiAgentConfig[]> {

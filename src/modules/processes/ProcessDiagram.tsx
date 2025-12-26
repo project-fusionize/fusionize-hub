@@ -70,7 +70,7 @@ export const ProcessDiagram: React.FC<ProcessDiagramProps> = ({
     useEffect(() => {
         if (modeler && xml) {
             modeler.importXML(xml)
-                .then(({ warnings }) => {
+                .then(({ warnings }: { warnings: any[] }) => {
                     if (warnings.length) {
                         console.warn(warnings);
                     }
@@ -78,7 +78,7 @@ export const ProcessDiagram: React.FC<ProcessDiagramProps> = ({
                     canvas.zoom('fit-viewport');
                     setIsImported(true);
                 })
-                .catch((err) => {
+                .catch((err: any) => {
                     console.error('error importing XML', err);
                     setIsImported(false);
                 });

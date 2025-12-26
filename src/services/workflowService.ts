@@ -33,7 +33,7 @@ export interface WorkflowApiResponse {
 }
 
 export interface ApiWorkflowExecutionNode {
-    id: string; // The unique execution ID for this node instance
+    workflowNodeExecutionId: string;
     workflowNodeId: string;
     state: string;
     stageContext: any;
@@ -106,7 +106,9 @@ export interface WorkflowInteractionsApiResponse {
     };
 }
 
-const API_BASE_URL = 'http://localhost:8081/api/1.0/workflow';
+import { CONFIG } from '../config';
+
+const API_BASE_URL = `${CONFIG.API_BASE_URL}/api/1.0/workflow`;
 
 export const workflowService = {
     async fetchWorkflows(token: string): Promise<ApiWorkflow[]> {

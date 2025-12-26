@@ -14,7 +14,9 @@ const StompContext = createContext<StompContextType>({
 
 export const useStomp = () => useContext(StompContext);
 
-const WS_URL = 'ws://localhost:8081/ws/1.0';
+import { CONFIG } from '../config';
+
+const WS_URL = `${CONFIG.API_BASE_URL.replace(/^http/, 'ws')}/ws/1.0`;
 
 export const StompSessionProvider = ({ children }: { children: ReactNode }) => {
     const { token, isAuthenticated } = useAuth();

@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import React, { useState, useRef } from 'react'
+import { useState, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 

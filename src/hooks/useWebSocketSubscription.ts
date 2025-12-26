@@ -29,8 +29,9 @@ export const useWebSocketSubscription = (workflowId: string | undefined) => {
                     id: payload.workflowExecutionId,
                     workflowExecutionId: payload.workflowExecutionId,
                     status: status,
-                    lastUpdate: 'Recently', // You might want to get this from payload if available
-                    duration: '-', // Calculate if timestamps are available
+                    lastUpdate: 'Recently',
+                    updatedDate: payload.updatedDate || new Date().toISOString(),
+                    duration: '-',
                     nodes: payload.nodes
                 };
 

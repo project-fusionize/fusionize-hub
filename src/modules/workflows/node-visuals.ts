@@ -1,4 +1,4 @@
-import { Bot, Zap, GitBranch, Database, CheckCircle, Loader2, XCircle, Circle, PauseCircle, Clock, CircleDotDashedIcon, CircleDot } from 'lucide-react';
+import { Bot, Zap, GitBranch, Database, CheckCircle, Loader2, XCircle, Circle, Clock, CircleDot } from 'lucide-react';
 
 export const typeIcons: Record<string, { icon: any, label: string, variant: "default" | "secondary" | "destructive" | "outline", description: string, color: string, border: string }> = {
     start: { icon: CheckCircle, label: 'Start', variant: 'outline', description: 'The starting point of the workflow execution.', color: 'bg-muted-foreground', border: 'border-muted-foreground' },
