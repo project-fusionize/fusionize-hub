@@ -14,7 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Activity, Bot, Brain, Database, Home, MessageSquare, Settings, Workflow, Wrench, LogOut, GitBranch } from "lucide-react";
+import { Activity, Bot, Brain, Database, Home, MessageSquare, Settings, Workflow, Wrench, LogOut, GitBranch, BotMessageSquare } from "lucide-react";
 import { Logo } from "@/components/logo";
 import Avatar from "boring-avatars";
 import type { Route } from "./nav-main";
@@ -23,6 +23,15 @@ import { ProjectSwitcher } from "@/components/project-switcher";
 import { ThemeModeToggle } from "./ui/theme-mode-toggle";
 import { useAuth } from "@/auth/AuthContext";
 import { Card } from "./ui/card";
+import { AiAgentChat } from "@/components/ai-agent-chat";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "./ui/button";
 
 const dashboardRoutes: Route[] = [
   {
@@ -167,8 +176,22 @@ export function DashboardSidebar() {
           transition={{ duration: 0.8 }}
         >
           <ThemeModeToggle />
+          <Sheet>
+            <SheetTrigger asChild>
 
-          {/* <NotificationsPopover notifications={sampleNotifications} /> */}
+              <Button variant="ghost" size="icon" >
+                <BotMessageSquare className="size-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[400px] sm:w-[540px] flex flex-col p-0">
+              <SheetHeader className="p-4 border-b">
+                <SheetTitle>AI Agent</SheetTitle>
+              </SheetHeader>
+              <div className="flex-1 overflow-hidden p-0">
+                <AiAgentChat />
+              </div>
+            </SheetContent>
+          </Sheet>
           <SidebarTrigger />
         </motion.div>
       </SidebarHeader>
