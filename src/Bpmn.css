@@ -1,16 +1,10 @@
-/* BPMN Theme Variables */
-.djs-container {
+/* BPMN Theme Variables & Canvas Background */
+.bjs-container {
     --bpmn-stroke: var(--foreground);
     --bpmn-fill: var(--background);
     --bpmn-text: var(--foreground);
-    --bpmn-grid-dot: var(--border);
-}
 
-/* Canvas Background */
-.bjs-container {
     background-color: var(--background) !important;
-    background-image: radial-gradient(var(--bpmn-grid-dot) 1px, transparent 1px) !important;
-    background-size: 20px 20px !important;
 }
 
 /* Elements (Shapes) */
@@ -271,4 +265,83 @@
 .djs-popup-body .entry:hover {
     background-color: var(--dropdown-item-hover-background-color) !important;
     color: var(--link-color) !important;
+}
+
+/* Status Badges */
+.bpmn-badge {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    opacity: 0.66;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--background);
+    background-color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bpmn-badge:hover {
+    opacity: 1;
+}
+
+.bpmn-badge-running {
+    background-color: var(--primary);
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.bpmn-badge-completed {
+    background-color: #10b981;
+    /* green-500 */
+    color: white;
+}
+
+.bpmn-badge-failed {
+    background-color: #ef4444;
+    /* red-500 */
+    color: white;
+}
+
+/* Spinner Animation */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: .7;
+    }
+}
+
+.bpmn-spinner {
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+.bpmn-icon-check::before {
+    content: '✓';
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.bpmn-icon-cross::before {
+    content: '✕';
+    font-size: 10px;
+    font-weight: bold;
 }

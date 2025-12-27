@@ -14,7 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Activity, Bot, Brain, Database, Home, MessageSquare, Settings, Workflow, Wrench, LogOut } from "lucide-react";
+import { Activity, Bot, Brain, Database, Home, MessageSquare, Settings, Workflow, Wrench, LogOut, GitBranch } from "lucide-react";
 import { Logo } from "@/components/logo";
 import Avatar from "boring-avatars";
 import type { Route } from "./nav-main";
@@ -44,24 +44,30 @@ const dashboardRoutes: Route[] = [
     link: "/workflows",
   },
   {
-    id: "agents",
-    title: "Agents",
+    id: "processes",
+    title: "Processes",
+    icon: <GitBranch className="size-4" />,
+    link: "/processes",
+  },
+  {
+    id: "ai",
+    title: "AI",
     icon: <Bot className="size-4" />,
     link: "#",
     subs: [
       {
         title: "Models",
-        link: "/agents/models",
+        link: "/ai/models",
         icon: <Brain className="size-4" />,
       },
       {
         title: "Tools",
-        link: "/agents/tools",
+        link: "/ai/tools",
         icon: <Wrench className="size-4" />,
       },
       {
-        title: "Prompts",
-        link: "/agents/prompts",
+        title: "Agents",
+        link: "/ai/agents",
         icon: <MessageSquare className="size-4" />,
       },
     ],

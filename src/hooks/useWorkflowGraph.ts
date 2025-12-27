@@ -19,10 +19,15 @@ export interface NodeData extends Record<string, unknown> {
     | 'human-wait' | 'sys-wait' | 'ai-wait' | 'wait';
     status: 'done' | 'working' | 'waiting' | 'failed' | 'pending' | 'idle';
     component?: string;
+    componentConfig?: any;
     stageContext?: any;
     inputContext?: any;
     selected?: boolean;
+    workflowId?: string;
+    workflowExecutionId?: string;
+    workflowNodeExecutionId?: string;
 }
+
 
 // --- Helper Functions ---
 
@@ -107,6 +112,7 @@ const getEdgeStyle = (sourceStatus: string, targetStatus: string) => {
 const processExecutionData = (execution: Execution | undefined) => {
     const statusMap = new Map<string, string>();
     const contextMap = new Map<string, any>();
+    const executionIdMap = new Map<string, string>();
 
     if (execution && execution.nodes) {
         const latestNodeExecutions = new Map<string, any>();
@@ -127,9 +133,10 @@ const processExecutionData = (execution: Execution | undefined) => {
         latestNodeExecutions.forEach((node, nodeId) => {
             statusMap.set(nodeId, node.state?.toLowerCase() || 'pending');
             if (node.stageContext) contextMap.set(nodeId, node.stageContext);
+            if (node.workflowNodeExecutionId) executionIdMap.set(nodeId, node.workflowNodeExecutionId);
         });
     }
-    return { statusMap, contextMap };
+    return { statusMap, contextMap, executionIdMap };
 };
 
 
@@ -176,7 +183,7 @@ export const useWorkflowGraph = (
             return;
         }
 
-        const { statusMap, contextMap } = processExecutionData(execution);
+        const { statusMap, contextMap, executionIdMap } = processExecutionData(execution);
 
         const newNodes: Node<NodeData>[] = [];
         const newEdges: Edge[] = [];
@@ -218,8 +225,12 @@ export const useWorkflowGraph = (
                     nodeType: uiNodeType,
                     status: status,
                     component: node.component,
+                    componentConfig: node.componentConfig,
                     stageContext: stageContext,
                     inputContext: inputContext,
+                    workflowId: workflow?.id,
+                    workflowExecutionId: executionId,
+                    workflowNodeExecutionId: executionIdMap.get(node.workflowNodeId),
                 }
             });
 

@@ -30,7 +30,9 @@ export interface NewStorage {
     secrets: Record<string, any>;
 }
 
-const API_BASE_URL = 'http://localhost:8081/api/1.0/storage-config';
+import { CONFIG } from '../config';
+
+const API_BASE_URL = `${CONFIG.API_BASE_URL}/api/1.0/storage-config`;
 
 export const storageService = {
     async fetchStorages(token: string): Promise<ApiStorage[]> {

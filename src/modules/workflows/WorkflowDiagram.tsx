@@ -51,6 +51,7 @@ export function WorkflowDiagram({ onNodeSelect, selectedNodeId, executionId, wor
         component: node.data.component,
         stageContext: node.data.stageContext,
         inputContext: node.data.inputContext,
+        componentConfig: node.data.componentConfig,
       });
     },
     [onNodeSelect]

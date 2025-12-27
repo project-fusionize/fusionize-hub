@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Clock, Search, ArrowRightLeft, GitBranch } from 'lucide-react';
+import { Clock, Search, ArrowRightLeft, GitBranch, MessageSquareDashed, Settings } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,9 @@ import { NodeLegendModal } from './NodeLegendModal';
 import { typeIcons, statusConfig } from './node-visuals';
 
 import { useWorkflowExecutionLogs } from '../../hooks/useWorkflowExecutionLogs';
+import { useWorkflowInteractions } from '../../hooks/useWorkflowInteractions';
+import { useWorkflowInteractionsSubscription } from '../../hooks/useWorkflowInteractionsSubscription';
+import { ChatConversation, type ChatMessage } from '@/components/chat-conversation';
 
 interface NodeDetailPanelProps {
   node: (NodeData & { id: string }) | null;
@@ -32,6 +35,11 @@ export function NodeDetailPanel({ node, workflowId, executionId }: NodeDetailPan
   const [logSearch, setLogSearch] = useState('');
   const [showDiff, setShowDiff] = useState(false);
   const { logs: allLogs } = useWorkflowExecutionLogs(workflowId, executionId);
+  const { interactions: allInteractions } = useWorkflowInteractions(workflowId, executionId);
+
+  // Ideally this subscription should be at the page level, but putting it here ensures it works when viewing details
+  useWorkflowInteractionsSubscription(workflowId);
+
   const firstNodeLogRef = useRef<HTMLDivElement>(null);
 
   const firstMatchId = allLogs.find(l => l.workflowNodeId === node?.id)?.id;
@@ -64,7 +72,6 @@ export function NodeDetailPanel({ node, workflowId, executionId }: NodeDetailPan
   const TypeIcon = typeConfig.icon;
   const StatusIcon = statusInfo.icon;
 
-  // Mock execution data
   const executionTimeline = [
     { time: '12:01:33', event: `Started: ${node.label}` },
     { time: '12:01:34', event: node.nodeType.includes('ai') ? 'AI Model: gpt-4o' : 'Initializing...' },
@@ -72,12 +79,18 @@ export function NodeDetailPanel({ node, workflowId, executionId }: NodeDetailPan
     { time: '12:01:36', event: 'Completed in 2.1s' },
   ];
 
-  const mockMetadata = {
-    duration: '2.1s',
-    cost: node.nodeType.includes('ai') ? '$0.0042' : 'N/A',
-    tokens: node.nodeType.includes('ai') ? { input: 234, output: 89 } : undefined,
-    retries: 0,
-  };
+  const nodeInteractions = allInteractions.filter(i => i.workflowNodeId === node?.id);
+  const chatMessages: ChatMessage[] = nodeInteractions.map(interaction => ({
+    id: interaction.id,
+    type: 'text',
+    content: interaction.content,
+    author: interaction.actor === 'human' ? 'You' : (interaction.actor === 'system' ? 'System' : 'Assistant'),
+    avatar: interaction.actor === 'human' ? 'U' : (interaction.actor === 'system' ? 'Sys' : 'AI'),
+    time: new Date(interaction.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    isOwn: interaction.actor === 'human',
+    interactionType: interaction.type,
+  }));
+
 
   const formatLogTime = (timestamp: string) => {
     try {
@@ -150,7 +163,7 @@ export function NodeDetailPanel({ node, workflowId, executionId }: NodeDetailPan
             <TabsTrigger value="overview" className="flex-1 text-xs">Overview</TabsTrigger>
             <TabsTrigger value="context" className="flex-1 text-xs">Context</TabsTrigger>
             <TabsTrigger value="logs" className="flex-1 text-xs">Logs</TabsTrigger>
-            <TabsTrigger value="metadata" className="flex-1 text-xs">Metadata</TabsTrigger>
+            <TabsTrigger value="interaction" className="flex-1 text-xs">Interaction</TabsTrigger>
           </TabsList>
         </div>
 
@@ -174,16 +187,20 @@ export function NodeDetailPanel({ node, workflowId, executionId }: NodeDetailPan
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-md bg-muted/30 border border-border">
-                <div className="text-[10px] text-muted-foreground mb-0.5">Duration</div>
-                <div className="text-sm font-medium">{mockMetadata.duration}</div>
+            {/* Component Configuration */}
+            {node.componentConfig?.config && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <Settings className="w-3.5 h-3.5" />
+                  Component Configuration
+                </div>
+                <div className="border border-border/50 rounded-md bg-muted/20 overflow-hidden">
+                  <div className="p-2 max-h-[300px] overflow-auto">
+                    <JsonViewer data={node.componentConfig.config} initialExpanded={true} />
+                  </div>
+                </div>
               </div>
-              <div className="p-3 rounded-md bg-muted/30 border border-border">
-                <div className="text-[10px] text-muted-foreground mb-0.5">Retries</div>
-                <div className="text-sm font-medium">{mockMetadata.retries}</div>
-              </div>
-            </div>
+            )}
           </TabsContent>
 
           {/* Context Tab */}
@@ -291,22 +308,20 @@ export function NodeDetailPanel({ node, workflowId, executionId }: NodeDetailPan
             </div>
           </TabsContent>
 
-          {/* Metadata Tab */}
-          <TabsContent value="metadata" className="m-0 h-full p-4">
-            <div className="grid grid-cols-1 gap-3">
-              {Object.entries(mockMetadata).map(([key, value]) => (
-                <div key={key} className="flex flex-col gap-1">
-                  <span className="text-xs font-medium text-muted-foreground capitalize">{key}</span>
-                  <div className="p-2 bg-muted/30 rounded border border-border font-mono text-xs break-all">
-                    {typeof value === 'object' ? JSON.stringify(value, null, 2) : value}
-                  </div>
-                </div>
-              ))}
-            </div>
+          {/* Interaction Tab */}
+          <TabsContent value="interaction" className="m-0 h-full p-4">
+            {chatMessages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground opacity-50 space-y-2">
+                <MessageSquareDashed className="w-12 h-12 stroke-[1.5]" />
+                <p className="text-sm">No interactions recorded</p>
+              </div>
+            ) : (
+              <ChatConversation messages={chatMessages} />
+            )}
           </TabsContent>
         </div>
-      </Tabs>
-    </div>
+      </Tabs >
+    </div >
   );
 }
 

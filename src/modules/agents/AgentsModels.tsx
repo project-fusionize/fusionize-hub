@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAuth } from '../../auth/AuthContext';
 import { useChatModels, type Model } from '../../hooks/useChatModels';
+import { providerLogos } from './constants';
 
 export function AgentsModels() {
   const { isAuthenticated, login } = useAuth();
@@ -37,13 +38,6 @@ export function AgentsModels() {
   const [showModal, setShowModal] = useState(false);
   const [editingModel, setEditingModel] = useState<Model | null>(null);
   const [modelToDelete, setModelToDelete] = useState<string | null>(null);
-
-  const providerLogos: Record<string, string> = {
-    'OpenAI': 'https://logo.clearbit.com/openai.com',
-    'Anthropic': 'https://logo.clearbit.com/anthropic.com',
-    'Azure': 'https://logo.clearbit.com/azure.microsoft.com',
-    'Google': 'https://logo.clearbit.com/google.com',
-  };
 
   const modeColors = {
     Chat: 'bg-blue-500/10 text-blue-600 hover:bg-blue-500/20',
@@ -171,11 +165,11 @@ export function AgentsModels() {
                             <Server className="w-5 h-5 text-muted-foreground" />
                           ) : (
                             <img
-                              src={providerLogos[model.provider] || 'https://logo.clearbit.com/openai.com'}
+                              src={providerLogos[model.provider] || 'https://logos-api.apistemic.com/domain:openai.com'}
                               alt={model.provider}
                               className="w-5 h-5 object-contain rounded-sm"
                               onError={(e) => {
-                                (e.target as HTMLImageElement).src = 'https://logo.clearbit.com/openai.com';
+                                (e.target as HTMLImageElement).src = 'https://logos-api.apistemic.com/domain:openai.com';
                                 (e.target as HTMLImageElement).onerror = null;
                               }}
                             />

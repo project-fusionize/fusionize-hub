@@ -31,7 +31,9 @@ export interface NewModel {
     };
 }
 
-const API_BASE_URL = 'http://localhost:8081/api/1.0/chat-model-config';
+import { CONFIG } from '../config';
+
+const API_BASE_URL = `${CONFIG.API_BASE_URL}/api/1.0/chat-model-config`;
 
 export const chatModelService = {
     async fetchModels(token: string): Promise<ApiModel[]> {

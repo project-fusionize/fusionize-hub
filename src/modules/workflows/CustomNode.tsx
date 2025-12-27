@@ -2,8 +2,19 @@ import { Handle, Position } from '@xyflow/react';
 import { ShimmeringText } from '@/components/animate-ui/primitives/texts/shimmering';
 import type { NodeData } from '../../hooks/useWorkflowGraph';
 import { typeIcons, statusConfig } from './node-visuals';
+import { MoreHorizontal, RotateCcw } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
+import { useAuth } from '@/auth/AuthContext';
+import { workflowOrchestrationService } from '@/services/workflowOrchestrationService';
 
 export function CustomNode({ data }: { data: NodeData }) {
+  const { token } = useAuth();
   const nodeConfig = typeIcons[data.nodeType] || typeIcons['tool'];
   const statusInfo = statusConfig[data.status] || statusConfig['pending'];
   const NodeIcon = nodeConfig.icon;
@@ -40,8 +51,46 @@ export function CustomNode({ data }: { data: NodeData }) {
         </div>
 
         {data.component && (
-          <div className="px-3 py-2 text-sm text-muted-foreground">
-            <div className="truncate text-[10px] text-muted-foreground font-mono mt-0.5">{data.component}</div>
+          <div className="px-3 py-2 text-sm text-muted-foreground flex items-center justify-between gap-2">
+            <div className="truncate text-[10px] text-muted-foreground font-mono mt-0.5 flex-1">{data.component}</div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="h-6 w-6 p-0 hover:bg-muted rounded-md flex items-center justify-center transition-colors">
+                  <MoreHorizontal className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  disabled={data.status !== 'failed'}
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (data.workflowId && data.workflowExecutionId && data.workflowNodeExecutionId && token) {
+                      try {
+                        await workflowOrchestrationService.replayWorkflowNodeExecution(
+                          token,
+                          data.workflowId,
+                          data.workflowExecutionId,
+                          data.workflowNodeExecutionId
+                        );
+                        console.log('Replay triggered successfully');
+                      } catch (error) {
+                        console.error('Failed to trigger replay', error);
+                      }
+                    } else {
+                      console.warn('Missing required data for replay', {
+                        workflowId: data.workflowId,
+                        workflowExecutionId: data.workflowExecutionId,
+                        workflowNodeExecutionId: data.workflowNodeExecutionId,
+                        tokenPresent: !!token
+                      });
+                    }
+                  }}
+                >
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Replay
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
       </div>

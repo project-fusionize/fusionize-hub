@@ -49,11 +49,11 @@ export function AgentsStorages() {
   };
 
   const providerLogos: Record<string, string> = {
-    'PINECONE': 'https://logo.clearbit.com/pinecone.io',
-    'MONGO_DB': 'https://logo.clearbit.com/mongodb.com',
-    'CHROMA_DB': 'https://logo.clearbit.com/trychroma.com',
-    'AWS_S3': 'https://logo.clearbit.com/aws.amazon.com',
-    'AZURE_BLOB': 'https://logo.clearbit.com/azure.microsoft.com',
+    'PINECONE': 'https://logos-api.apistemic.com/domain:pinecone.io',
+    'MONGO_DB': 'https://logos-api.apistemic.com/domain:mongodb.com',
+    'CHROMA_DB': 'https://logos-api.apistemic.com/domain:trychroma.com',
+    'AWS_S3': 'https://logos-api.apistemic.com/domain:amazon.com',
+    'AZURE_BLOB': 'https://logos-api.apistemic.com/domain:azure.microsoft.com',
   };
 
   const handleTest = async (id: string) => {
@@ -235,10 +235,6 @@ export function AgentsStorages() {
                             src={providerLogos[storage.provider]}
                             alt={storage.provider}
                             className="w-5 h-5 object-contain rounded-sm"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = 'https://logo.clearbit.com/database.com';
-                              (e.target as HTMLImageElement).onerror = null;
-                            }}
                           />
                           <span>{storage.provider}</span>
                         </div>
