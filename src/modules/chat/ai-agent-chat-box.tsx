@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,7 +13,6 @@ import {
   IconChevronDown,
   IconCircle,
   IconCircleDashed,
-  IconCloud,
   IconCode,
   IconDeviceLaptop,
   IconHistory,
@@ -27,21 +24,60 @@ import {
   IconUser,
   IconWand,
   IconWorld,
+  IconLoader2
 } from "@tabler/icons-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { useChatModels, type Model } from "../../hooks/useChatModels";
+import { providerLogos } from "../agents/constants";
 
-export default function Ai03() {
+interface AiAgentChatBoxProps {
+  onSendMessage: (message: string, modelConfig: string) => void;
+  isLoading: boolean;
+}
+
+export default function AiAgentChatBox({ onSendMessage, isLoading }: AiAgentChatBoxProps) {
   const [input, setInput] = useState("");
-  const [selectedModel, setSelectedModel] = useState("Local");
+  const { models } = useChatModels();
+  const [selectedModel, setSelectedModel] = useState<Model | null>(null);
   const [selectedAgent, setSelectedAgent] = useState("Agent");
   const [selectedPerformance, setSelectedPerformance] = useState("High");
   const [autoMode, setAutoMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Set default model when models are loaded
+  useEffect(() => {
+    if (models.length > 0 && !selectedModel) {
+      setSelectedModel(models[0]);
+    }
+  }, [models, selectedModel]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim()) {
+    if (input.trim() && selectedModel && !isLoading) {
+      onSendMessage(input, selectedModel.domain);
+      setInput("");
     }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
+  const getProviderLogo = (provider: string) => {
+    return (
+      <img
+        src={providerLogos[provider] || 'https://logos-api.apistemic.com/domain:openai.com'}
+        alt={provider}
+        className="size-4 object-contain rounded-sm"
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = 'https://logos-api.apistemic.com/domain:openai.com';
+          (e.target as HTMLImageElement).onerror = null;
+        }}
+      />
+    );
   };
 
   return (
@@ -60,6 +96,7 @@ export default function Ai03() {
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="Ask anything"
               className="w-full bg-transparent! p-0 border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground placeholder-muted-foreground resize-none border-none outline-none text-sm min-h-10 max-h-[25vh]"
               rows={1}
@@ -68,6 +105,7 @@ export default function Ai03() {
                 target.style.height = "auto";
                 target.style.height = target.scrollHeight + "px";
               }}
+              disabled={isLoading}
             />
           </form>
         </div>
@@ -142,11 +180,15 @@ export default function Ai03() {
           <div>
             <Button
               type="submit"
-              disabled={!input.trim()}
+              disabled={!input.trim() || isLoading}
               className="size-7 p-0 rounded-full bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleSubmit}
             >
-              <IconSend className="size-3 fill-primary" />
+              {isLoading ? (
+                <IconLoader2 className="size-3 fill-primary animate-spin" />
+              ) : (
+                <IconSend className="size-3 fill-primary" />
+              )}
             </Button>
           </div>
         </div>
@@ -158,10 +200,19 @@ export default function Ai03() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 px-2 rounded-full border border-transparent hover:bg-accent text-muted-foreground text-xs"
+              className="h-6 px-2 rounded-full border border-transparent hover:bg-accent text-muted-foreground text-xs gap-1.5"
             >
-              <IconDeviceLaptop className="size-3" />
-              <span>{selectedModel}</span>
+              {selectedModel ? (
+                <>
+                  {getProviderLogo(selectedModel.provider)}
+                  <span>{selectedModel.name}</span>
+                </>
+              ) : (
+                <>
+                  <IconDeviceLaptop className="size-3" />
+                  <span>Select Model</span>
+                </>
+              )}
               <IconChevronDown className="size-3" />
             </Button>
           </DropdownMenuTrigger>
@@ -170,20 +221,22 @@ export default function Ai03() {
             className="max-w-xs rounded-2xl p-1.5 bg-popover border-border"
           >
             <DropdownMenuGroup className="space-y-1">
-              <DropdownMenuItem
-                className="rounded-[calc(1rem-6px)] text-xs"
-                onClick={() => setSelectedModel("Local")}
-              >
-                <IconDeviceLaptop size={16} className="opacity-60" />
-                Local
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="rounded-[calc(1rem-6px)] text-xs"
-                onClick={() => setSelectedModel("Cloud")}
-              >
-                <IconCloud size={16} className="opacity-60" />
-                Cloud
-              </DropdownMenuItem>
+              {models.length === 0 ? (
+                <div className="px-2 py-1 text-xs text-muted-foreground">
+                  No models available
+                </div>
+              ) : (
+                models.map((model) => (
+                  <DropdownMenuItem
+                    key={model.id}
+                    className="rounded-[calc(1rem-6px)] text-xs gap-2"
+                    onClick={() => setSelectedModel(model)}
+                  >
+                    {getProviderLogo(model.provider)}
+                    {model.name}
+                  </DropdownMenuItem>
+                ))
+              )}
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>

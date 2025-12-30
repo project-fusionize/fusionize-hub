@@ -23,7 +23,7 @@ import { ProjectSwitcher } from "@/components/project-switcher";
 import { ThemeModeToggle } from "./ui/theme-mode-toggle";
 import { useAuth } from "@/auth/AuthContext";
 import { Card } from "./ui/card";
-import { AiAgentChat } from "@/components/ai-agent-chat";
+import { AiAgentChat } from "@/modules/chat/ai-agent-chat";
 import {
   Sheet,
   SheetContent,
