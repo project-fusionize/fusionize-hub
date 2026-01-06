@@ -34,24 +34,46 @@ export const agentChatService = {
                 throw new Error('Response body is unavailable');
             }
 
+            let buffer = '';
+            let isFirstDataInEvent = true;
+
+            const processLine = (line: string) => {
+                if (line.trim() === '') {
+                    isFirstDataInEvent = true;
+                    return;
+                }
+                if (line.startsWith('data:')) {
+                    const data = line.slice(5);
+                    if (!isFirstDataInEvent) {
+                        onChunk('\n' + data);
+                    } else {
+                        onChunk(data);
+                        isFirstDataInEvent = false;
+                    }
+                }
+            };
+
             while (true) {
                 const { done, value } = await reader.read();
-                if (done) break;
 
-                const chunk = decoder.decode(value, { stream: true });
-                const lines = chunk.split('\n');
+                if (done) {
+                    buffer += decoder.decode();
+                    if (buffer.length > 0) {
+                        const lines = buffer.split('\n');
+                        for (const line of lines) {
+                            processLine(line);
+                        }
+                    }
+                    break;
+                }
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+
+                buffer = lines.pop() || '';
 
                 for (const line of lines) {
-                    if (line.startsWith('data:')) {
-                        const data = line.slice(5); // Remove 'data:' prefix
-                        // Verify if there is a space after 'data:' that needs removal or if it's raw content
-                        // The example show "data:To", "data: submit", so we take the substring and maybe trim start if needed?
-                        // Actually, looking at the example: "data:To", "data: submit". 
-                        // It seems we should just take slice(5) and append it. 
-                        // Wait, "data:To" -> "To". "data: submit" -> " submit".
-                        // So slice(5) is correct.
-                        onChunk(data);
-                    }
+                    processLine(line);
                 }
             }
 
