@@ -27,6 +27,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@reduxjs/toolkit": "^2.11.1",
     "@stomp/stompjs": "^7.2.1",
+    "@tabler/icons-react": "^3.36.0",
     "@tailwindcss/vite": "^4.1.17",
     "@types/dagre": "^0.7.53",
     "@xyflow/react": "^12.9.2",
@@ -48,13 +49,15 @@
     "react-router-dom": "^7.10.0",
     "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss": "^4.1.17"
+    "tailwindcss": "^4.1.17",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
     "@types/node": "^24.10.0",
     "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",
+    "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^5.0.4",
     "eslint": "^9.36.0",
     "eslint-plugin-react-hooks": "^5.2.0",
