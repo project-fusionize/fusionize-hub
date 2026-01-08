@@ -109,7 +109,7 @@ export const ProcessDiagram: React.FC<ProcessDiagramProps> = ({
 
         Object.entries(nodeStatuses).forEach(([elementId, status]) => {
             let html = '';
-            let className = `bpmn-badge bpmn-badge-${status}`;
+            const className = `bpmn-badge bpmn-badge-${status}`;
 
             if (status === 'running') {
                 html = '<div class="bpmn-spinner"></div>';
