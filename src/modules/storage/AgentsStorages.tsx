@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Plus, Database, Edit2, Trash2, CheckCircle, XCircle, Zap } from 'lucide-react';
+import { Plus, Database, Edit2, Trash2, CheckCircle, XCircle, Zap, HardDrive } from 'lucide-react';
 import { StorageConfigModal } from './StorageConfigModal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -112,6 +112,7 @@ export function AgentsStorages() {
         'ChromaDB (Local)': 'CHROMA_DB',
         'AWS S3': 'AWS_S3',
         'Azure Blob': 'AZURE_BLOB',
+        'Local': 'LOCAL',
       };
 
       const payload: NewStorage = {
@@ -231,11 +232,15 @@ export function AgentsStorages() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <img
-                            src={providerLogos[storage.provider]}
-                            alt={storage.provider}
-                            className="w-5 h-5 object-contain rounded-sm"
-                          />
+                          {providerLogos[storage.provider] ? (
+                            <img
+                              src={providerLogos[storage.provider]}
+                              alt={storage.provider}
+                              className="w-5 h-5 object-contain rounded-sm"
+                            />
+                          ) : (
+                            <HardDrive className="w-5 h-5 text-muted-foreground" />
+                          )}
                           <span>{storage.provider}</span>
                         </div>
                       </TableCell>
