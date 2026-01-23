@@ -43,7 +43,8 @@ export function StorageConfigModal({ onClose, onSave, initialData }: StorageConf
         'MONGO_DB': 'MongoDB',
         'CHROMA_DB': 'ChromaDB (Local)',
         'AWS_S3': 'AWS S3',
-        'AZURE_BLOB': 'Azure Blob'
+        'AZURE_BLOB': 'Azure Blob',
+        'LOCAL': 'Local'
       };
       const uiProvider = providerMapReverse[initialData.provider] || initialData.provider;
 
@@ -82,7 +83,7 @@ export function StorageConfigModal({ onClose, onSave, initialData }: StorageConf
 
   const providersByType: Record<string, string[]> = {
     'Vector DB': ['Pinecone', 'ChromaDB (Local)'],
-    'Blob Storage': ['AWS S3', 'Azure Blob'],
+    'Blob Storage': ['AWS S3', 'Azure Blob', 'Local'],
   };
 
   const providerLogos: Record<string, string> = {
@@ -99,6 +100,7 @@ export function StorageConfigModal({ onClose, onSave, initialData }: StorageConf
     'ChromaDB (Local)': 'CHROMA_DB',
     'AWS S3': 'AWS_S3',
     'Azure Blob': 'AZURE_BLOB',
+    'Local': 'LOCAL',
   };
 
   const handleTest = async () => {
@@ -224,7 +226,8 @@ export function StorageConfigModal({ onClose, onSave, initialData }: StorageConf
               description="Add any additional configuration properties."
               mandatoryKeys={
                 (formData.type === 'Vector DB' && formData.provider === 'Pinecone') ? ['indexName', 'embeddingModel', 'apiKey'] :
-                  (formData.type === 'Blob Storage' && formData.provider === 'AWS S3') ? ['bucket', 'region', 'accessKey', 'secretKey'] : []
+                  (formData.type === 'Blob Storage' && formData.provider === 'AWS S3') ? ['bucket', 'region', 'accessKey', 'secretKey'] :
+                    (formData.type === 'Blob Storage' && formData.provider === 'Local') ? ['path'] : []
               }
             />
           </div>
